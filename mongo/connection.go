@@ -13,15 +13,15 @@ import (
 )
 
 type mongoClient interface {
-	Connect(foo context.Context, connection models.Connection) error
-	GetDatabases(foo context.Context) (string, error)
+	Connect(ctx context.Context, connection models.Connection) error
+	GetDatabases(ctx context.Context) (string, error)
 }
 
 const defaultPort string = "27017"
 
 var currentClient *mongo.Client
 
-func Connect(foo context.Context, connection models.Connection) error {
+func Connect(ctx context.Context, connection models.Connection) error {
 
 	port := connection.Port
 	if port == "" {
@@ -29,7 +29,7 @@ func Connect(foo context.Context, connection models.Connection) error {
 	}
 	uri := fmt.Sprintf("mongodb://%s:%s", connection.Host, port)
 
-	ctx, cancel := context.WithTimeout(foo, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -42,18 +42,12 @@ func Connect(foo context.Context, connection models.Connection) error {
 		return err
 	}
 
-	// defer func() {
-	// 	if err = client.Disconnect(ctx); err != nil {
-	// 		panic(err)
-	// 	}
-	// }()
-
 	currentClient = client
 	return nil
 }
 
-func GetDatabases(foo context.Context) ([]string, error) {
-	ctx, cancel := context.WithTimeout(foo, 10*time.Second)
+func GetDatabases(ctx context.Context) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	databases, err := currentClient.ListDatabaseNames(ctx, bson.D{})
@@ -63,8 +57,12 @@ func GetDatabases(foo context.Context) ([]string, error) {
 	return databases, nil
 }
 
-func Disconnect(foo context.Context) error {
-	ctx, cancel := context.WithTimeout(foo, 10*time.Second)
+func Disconnect(ctx context.Context) error {
+	if currentClient == nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if err := currentClient.Disconnect(ctx); err != nil {

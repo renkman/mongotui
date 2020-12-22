@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
 
 	"github.com/gdamore/tcell"
 	"github.com/renkman/mongotui/models"
@@ -12,6 +14,23 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	defer func() {
+		mongo.Disconnect(ctx)
+		signal.Stop(c)
+		cancel()
+	}()
+	go func() {
+		select {
+		case <-c:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 
@@ -20,7 +39,12 @@ func main() {
 		SetLabel("Command: ").
 		SetFieldWidth(200)
 	editor.SetDoneFunc(func(key tcell.Key) {
-		textView.Write([]byte(editor.GetText()))
+		result, err := mongo.Execute(ctx, []byte(editor.GetText()))
+		if err != nil {
+			ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
+			return
+		}
+		textView.Write([]byte(fmt.Sprintf("%v", result)))
 	})
 
 	commandsView := tview.NewTextView().
@@ -37,7 +61,6 @@ func main() {
 	textView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
 
-	ctx := context.Background()
 	databaseTree := ui.GetDatabaseTree(app, pages, func(name string) []string {
 		mongo.UseDatabase(name)
 		collections, err := mongo.GetCollections(ctx)
