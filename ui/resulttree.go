@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	//"reflect"
 
 	"github.com/rivo/tview"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -39,13 +38,25 @@ func (r *ResultTreeWidget) SetResult(result interface{}) {
 
 func addNode(node *tview.TreeNode, value interface{}) {
 	switch value.(type) {
-	case primitive.D:
-		resultMap := value.(primitive.D).Map()
+	case primitive.M:
+		resultMap := value.(primitive.M)
 		for k, v := range resultMap {
 			child := tview.NewTreeNode(k)
 			node.AddChild(child)
 			addNode(child, v)
 		}
+	case primitive.D:
+		resultMap := value.(primitive.D)
+		for i, v := range resultMap {
+			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
+			node.AddChild(child)
+			addNode(child, v)
+		}
+	case primitive.E:
+		resultElement := value.(primitive.E)
+		child := tview.NewTreeNode(resultElement.Key)
+		node.AddChild(child)
+		addNode(child, resultElement.Value)
 	default:
 		node.AddChild(tview.NewTreeNode(fmt.Sprintf("%v", value)))
 	}
