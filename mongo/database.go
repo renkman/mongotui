@@ -32,7 +32,7 @@ func GetCollections(ctx context.Context) ([]string, error) {
 	return collections, nil
 }
 
-func Execute(ctx context.Context, command []byte) (bson.M, error) {
+func Execute(ctx context.Context, command []byte) (interface{}, error) {
 	if currentClient == nil {
 		return nil, &DatabaseError{"Not connected"}
 	}
@@ -52,7 +52,7 @@ func Execute(ctx context.Context, command []byte) (bson.M, error) {
 
 	opts := options.RunCmd().SetReadPreference(readpref.Primary())
 
-	var result bson.M
+	var result interface{}
 	err = currentDatabase.RunCommand(ctx, commandBson, opts).Decode(&result)
 	if err != nil {
 		return nil, err
@@ -61,5 +61,5 @@ func Execute(ctx context.Context, command []byte) (bson.M, error) {
 }
 
 func (e *DatabaseError) Error() string {
-	return fmt.Sprintf("Error: %s", e.message)
+	return fmt.Sprintf(e.message)
 }

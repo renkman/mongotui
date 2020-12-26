@@ -34,7 +34,7 @@ func main() {
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 
-	textView := tview.NewTextView()
+	resultView := ui.CreateResultTree(app, pages)
 	editor := tview.NewInputField().
 		SetLabel("Command: ").
 		SetFieldWidth(200)
@@ -44,7 +44,7 @@ func main() {
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
 			return
 		}
-		textView.Write([]byte(fmt.Sprintf("%v", result)))
+		resultView.SetResult(result)
 	})
 
 	commandsView := tview.NewTextView().
@@ -58,7 +58,7 @@ func main() {
 
 	fmt.Fprint(commandsView, "\n[white]Ctrl - Q [darkcyan]Quit\t[white]Ctrl - C[darkcyan] Connect to database")
 
-	textView.SetBorder(true).SetTitle("Result")
+	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
 
 	databaseTree := ui.GetDatabaseTree(app, pages, func(name string) []string {
@@ -78,7 +78,7 @@ func main() {
 			AddItem(databaseTree, 40, 0, false).
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 				AddItem(editor, 3, 1, false).
-				AddItem(textView, 0, 1, false).
+				AddItem(resultView, 0, 1, false).
 				AddItem(tview.NewBox().SetBorder(true).SetTitle("Statistics"), 10, 1, false),
 				0, 1, false),
 			0, 1, false)
@@ -95,7 +95,6 @@ func main() {
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 			return
 		}
-		//defer mongo.Disconnect(ctx)
 
 		databases, err := mongo.GetDatabases(ctx)
 		if err != nil {
