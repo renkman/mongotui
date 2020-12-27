@@ -1,3 +1,18 @@
+// This file is part of MongoTUI.
+
+// MongoTUI is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// MongoTUI is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with MongoTUI.  If not, see <http://www.gnu.org/licenses/>.
+
 package main
 
 import (
@@ -61,7 +76,9 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 				0, 1, false),
 			0, 1, false)
 
-	frame := tview.NewFrame(flex).AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow)
+	frame := tview.NewFrame(flex).
+		AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow).
+		AddText("Copyright 2020 Jan Renken", true, tview.AlignRight, tcell.ColorYellow)
 	pages.AddPage("frame", frame, true, true)
 
 	quitModal := ui.GetQuitModalWidget(app, pages)
