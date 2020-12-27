@@ -1,0 +1,45 @@
+# Go
+# Build your Go project.
+# Add steps that test, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/go
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps: 
+- task: GoTool@0
+  inputs:
+    version: '1.14.7'
+- task: Go@0
+  displayName: 'Get packages'
+  inputs:
+    command: 'get'
+    arguments: '-d'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: Go@0
+  displayName: 'Build app'
+  inputs:
+    command: 'build'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: CopyFiles@2
+  inputs:
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+     artifactName: drop
+- task: GitHubRelease@1
+  condition: ne(variables.releaseTag, '')
+  inputs:
+    gitHubConnection: 'github.com_renkman'
+    repositoryName: 'renkman/mongotui'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: $(releaseTag)
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/mongotui
