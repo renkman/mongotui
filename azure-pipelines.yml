@@ -31,6 +31,7 @@ steps:
   inputs:
      artifactName: drop
 - task: GitHubRelease@1
+  condition: ne(variables.releaseTag, '')
   inputs:
     gitHubConnection: 'github.com_renkman'
     repositoryName: 'renkman/mongotui'
