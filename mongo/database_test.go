@@ -13,12 +13,17 @@ import (
 
 func TestDatabaseExecutePrimitiveM(t *testing.T) {
 	ctx := context.Background()
-	connection := models.Connection{Host: "localhost"}
+	connection := &models.Connection{Host: "localhost"}
 	command := []byte("{\"listCommands\": 1}")
 
 	Connect(ctx, connection)
-	UseDatabase("admin")
+	assert.Equal(t, "mongodb://localhost", connection.Uri)
+
+	err := UseDatabase("mongodb://localhost", "admin")
+	assert.Nil(t, err)
+
 	result, err := Execute(ctx, command)
+	assert.Nil(t, err)
 
 	writeValueOrdered(result, 0)
 
@@ -28,12 +33,17 @@ func TestDatabaseExecutePrimitiveM(t *testing.T) {
 
 func TestDatabaseExecutePrimitiveD(t *testing.T) {
 	ctx := context.Background()
-	connection := models.Connection{Host: "localhost"}
+	connection := &models.Connection{Host: "localhost"}
 	command := []byte("{\"listCommands\": 1}")
 
 	Connect(ctx, connection)
-	UseDatabase("admin")
+	assert.Equal(t, "mongodb://localhost", connection.Uri)
+
+	err := UseDatabase("mongodb://localhost", "admin")
+	assert.Nil(t, err)
+
 	result, err := Execute(ctx, command)
+	assert.Nil(t, err)
 
 	writeValueOrdered(result, 0)
 

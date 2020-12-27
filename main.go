@@ -16,7 +16,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	defer func() {
-		mongo.Disconnect(ctx)
+		mongo.DisconnectAll(ctx)
 		signal.Stop(c)
 		cancel()
 	}()

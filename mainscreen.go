@@ -39,8 +39,8 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
 
-	databaseTree := ui.GetDatabaseTree(app, pages, func(name string) []string {
-		mongo.UseDatabase(name)
+	databaseTree := ui.GetDatabaseTree(app, pages, func(connectionUri string, name string) []string {
+		mongo.UseDatabase(connectionUri, name)
 		collections, err := mongo.GetCollections(ctx)
 		if err != nil {
 			message := fmt.Sprintf("Getting collections of database %s failed:\n\n%s", name, err.Error())
@@ -66,7 +66,7 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	quitModal := ui.GetQuitModalWidget(app, pages)
 
-	connectionForm := ui.GetConnectionFormWidget(app, pages, func(connection models.Connection) {
+	connectionForm := ui.GetConnectionFormWidget(app, pages, func(connection *models.Connection) {
 		err := mongo.Connect(ctx, connection)
 		if err != nil {
 			message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())
@@ -74,13 +74,13 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 			return
 		}
 
-		databases, err := mongo.GetDatabases(ctx)
+		databases, err := mongo.GetDatabases(ctx, connection.Uri)
 		if err != nil {
 			message := fmt.Sprintf("Getting databeses of %s failed:\n\n%s", connection.Host, err.Error())
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 			return
 		}
-		databaseTree.AddDatabases(connection.Host, databases)
+		databaseTree.AddDatabases(connection.Host, connection.Uri, databases)
 		pages.RemovePage("connection")
 	})
 

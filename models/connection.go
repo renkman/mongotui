@@ -7,4 +7,5 @@ type Connection struct {
 	Password   string
 	Replicaset string
 	tls        bool
+	Uri        string
 }

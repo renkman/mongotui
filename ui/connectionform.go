@@ -35,7 +35,7 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 	return modal, connectionForm
 }
 
-func GetConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection models.Connection)) *FormWidget {
+func GetConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection)) *FormWidget {
 	modal, form := createConnectionForm(
 		func() {
 			pages.RemovePage("connection")
@@ -56,10 +56,10 @@ func (f *FormWidget) SetEvent(event *tcell.EventKey) {
 	f.setEvent(f, event)
 }
 
-func (f *FormWidget) SetSelectedFunc(connect func(connection models.Connection)) {
+func (f *FormWidget) SetSelectedFunc(connect func(connection *models.Connection)) {
 	f.GetButton(0).SetSelectedFunc(func() {
 		connection := f.GetData()
-		connect(connection)
+		connect(&connection)
 	})
 }
 

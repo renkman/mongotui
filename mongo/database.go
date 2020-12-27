@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,14 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type DatabaseError struct {
-	message string
-}
-
 var currentDatabase *mongo.Database
 
-func UseDatabase(name string) {
-	currentDatabase = currentClient.Database(name)
+func UseDatabase(connectionUrl string, name string) error {
+	client, err := getClient(connectionUrl)
+	if err != nil {
+		return err
+	}
+	currentDatabase = client.Database(name)
+	return nil
 }
 
 func GetCollections(ctx context.Context) ([]string, error) {
@@ -33,12 +34,8 @@ func GetCollections(ctx context.Context) ([]string, error) {
 }
 
 func Execute(ctx context.Context, command []byte) (interface{}, error) {
-	if currentClient == nil {
-		return nil, &DatabaseError{"Not connected"}
-	}
-
 	if currentDatabase == nil {
-		return nil, &DatabaseError{"No database selected"}
+		return nil, errors.New("No database selected")
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -58,8 +55,4 @@ func Execute(ctx context.Context, command []byte) (interface{}, error) {
 		return nil, err
 	}
 	return result, nil
-}
-
-func (e *DatabaseError) Error() string {
-	return fmt.Sprintf(e.message)
 }

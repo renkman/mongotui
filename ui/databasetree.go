@@ -8,12 +8,14 @@ import (
 type DatabaseTreeWidget struct {
 	*tview.TreeView
 	*EventWidget
-	loadCollections func(database string) []string
+	loadCollections func(connectionUri string, database string) []string
 }
 
 const rootText string = "Connections"
 const nodeLevelDatabase string = "database"
 const nodeLevelCollection string = "collection"
+
+var parentMapping map[*tview.TreeNode]*tview.TreeNode = make(map[*tview.TreeNode]*tview.TreeNode)
 
 func createDatabaseTree() *tview.TreeView {
 	tree := tview.NewTreeView()
@@ -27,7 +29,7 @@ func createDatabaseTree() *tview.TreeView {
 
 func GetDatabaseTree(app *tview.Application,
 	pages *tview.Pages,
-	loadCollections func(database string) []string) *DatabaseTreeWidget {
+	loadCollections func(connectionUri string, database string) []string) *DatabaseTreeWidget {
 	tree := createDatabaseTree()
 	widget := createEventWidget(tree, "databasetree", tcell.KeyCtrlD, app, pages)
 
@@ -45,25 +47,40 @@ func (d *DatabaseTreeWidget) SetEvent(event *tcell.EventKey) {
 	d.setEvent(d, event)
 }
 
-func (d *DatabaseTreeWidget) AddDatabases(connection string, databases []string) {
-	connectionNode := tview.NewTreeNode(connection).SetColor(tcell.ColorGreen)
-	d.TreeView.GetRoot().AddChild(connectionNode)
+func (d *DatabaseTreeWidget) AddDatabases(host string, connectionUri string, databases []string) {
+	root := d.TreeView.GetRoot()
+	var connectionNode *tview.TreeNode
+	for _, node := range root.GetChildren() {
+		if node.GetReference().(string) == connectionUri {
+			connectionNode = node
+			break
+		}
+	}
+	if connectionNode == nil {
+		connectionNode = tview.NewTreeNode(host).
+			SetColor(tcell.ColorGreen).
+			SetReference(connectionUri)
+		d.TreeView.GetRoot().AddChild(connectionNode)
+	}
 
+	connectionNode.ClearChildren()
 	for _, database := range databases {
-		connectionNode.AddChild(tview.NewTreeNode(database).
+		databaseNode := tview.NewTreeNode(database).
 			SetColor(tcell.ColorYellow).
 			SetSelectable(true).
-			SetReference(nodeLevelDatabase))
+			SetReference(nodeLevelDatabase)
+		connectionNode.AddChild(databaseNode)
+		parentMapping[databaseNode] = connectionNode
 	}
 }
 
-func (d *DatabaseTreeWidget) getCollections(name string) []string {
-	return d.loadCollections(name)
+func (d *DatabaseTreeWidget) getCollections(connectionUri string, name string) []string {
+	return d.loadCollections(connectionUri, name)
 }
 
 func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	reference := node.GetReference()
-	if node.GetText() == rootText || reference == nil {
+	if reference == nil {
 		return
 	}
 
@@ -72,7 +89,8 @@ func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	}
 
 	node.ClearChildren()
-	collections := d.getCollections(node.GetText())
+	connectionUri := parentMapping[node].GetReference().(string)
+	collections := d.getCollections(connectionUri, node.GetText())
 
 	for _, collection := range collections {
 		node.AddChild(tview.NewTreeNode(collection)).
