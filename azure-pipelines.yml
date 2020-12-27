@@ -30,3 +30,13 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
      artifactName: drop
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.com_renkman'
+    repositoryName: 'renkman/mongotui'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: '$(releaseTag)'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
