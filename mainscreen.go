@@ -78,7 +78,7 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	frame := tview.NewFrame(flex).
 		AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow).
-		AddText("Copyright 2020 Jan Renken", true, tview.AlignRight, tcell.ColorYellow)
+		AddText("Copyright 2020 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
 	pages.AddPage("frame", frame, true, true)
 
 	quitModal := ui.GetQuitModalWidget(app, pages)
