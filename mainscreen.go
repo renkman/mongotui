@@ -26,7 +26,19 @@ import (
 	"github.com/rivo/tview"
 )
 
-func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages) {
+func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages) {
+
+	databaseTree := ui.CreateDatabaseTree(app, pages, func(connectionUri string, name string) []string {
+		mongo.UseDatabase(connectionUri, name)
+		collections, err := mongo.GetCollections(ctx)
+		if err != nil {
+			message := fmt.Sprintf("Getting collections of database %s failed:\n\n%s", name, err.Error())
+			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+			return collections
+		}
+		return collections
+	})
+
 	resultView := ui.CreateResultTree(app, pages)
 	editor := tview.NewInputField().
 		SetLabel("Command: ").
@@ -38,6 +50,7 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 			return
 		}
 		resultView.SetResult(result)
+		databaseTree.UpdateCollections()
 	})
 
 	commandsView := tview.NewTextView().
@@ -53,17 +66,6 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
-
-	databaseTree := ui.GetDatabaseTree(app, pages, func(connectionUri string, name string) []string {
-		mongo.UseDatabase(connectionUri, name)
-		collections, err := mongo.GetCollections(ctx)
-		if err != nil {
-			message := fmt.Sprintf("Getting collections of database %s failed:\n\n%s", name, err.Error())
-			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
-			return collections
-		}
-		return collections
-	})
 
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(commandsView, 5, 1, false).
@@ -81,9 +83,9 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		AddText("Copyright 2020 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
 	pages.AddPage("frame", frame, true, true)
 
-	quitModal := ui.GetQuitModalWidget(app, pages)
+	quitModal := ui.CreateQuitModalWidget(app, pages)
 
-	connectionForm := ui.GetConnectionFormWidget(app, pages, func(connection *models.Connection) {
+	connectionForm := ui.CreateConnectionFormWidget(app, pages, func(connection *models.Connection) {
 		err := mongo.Connect(ctx, connection)
 		if err != nil {
 			message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())
@@ -91,13 +93,13 @@ func CreateMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 			return
 		}
 
-		databases, err := mongo.GetDatabases(ctx, connection.Uri)
+		databases, err := mongo.GetDatabases(ctx, connection.URI)
 		if err != nil {
 			message := fmt.Sprintf("Getting databeses of %s failed:\n\n%s", connection.Host, err.Error())
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 			return
 		}
-		databaseTree.AddDatabases(connection.Host, connection.Uri, databases)
+		databaseTree.AddDatabases(connection.Host, connection.URI, databases)
 		pages.RemovePage("connection")
 	})
 

@@ -17,7 +17,7 @@ package mongo
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -28,8 +28,10 @@ import (
 
 var currentDatabase *mongo.Database
 
-func UseDatabase(connectionUrl string, name string) error {
-	client, err := getClient(connectionUrl)
+// UseDatabase sets the current database specified by the passed name of the MongoDB instance
+// specified by the passed connectionURI.
+func UseDatabase(connectionURI string, name string) error {
+	client, err := getClient(connectionURI)
 	if err != nil {
 		return err
 	}
@@ -37,7 +39,13 @@ func UseDatabase(connectionUrl string, name string) error {
 	return nil
 }
 
+// GetCollections returns the collections of the current database, which is
+// set by UseDatabase.
 func GetCollections(ctx context.Context) ([]string, error) {
+	if currentDatabase == nil {
+		return nil, fmt.Errorf("No database selected")
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -48,9 +56,11 @@ func GetCollections(ctx context.Context) ([]string, error) {
 	return collections, nil
 }
 
+// Execute executes the passed command on the current database, which is set by
+// UseDatabase.
 func Execute(ctx context.Context, command []byte) (interface{}, error) {
 	if currentDatabase == nil {
-		return nil, errors.New("No database selected")
+		return nil, fmt.Errorf("No database selected")
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)

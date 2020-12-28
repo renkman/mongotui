@@ -17,7 +17,6 @@ package mongo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -36,14 +35,18 @@ const defaultHost string = "localhost"
 
 var clients map[string]*mongo.Client = make(map[string]*mongo.Client)
 
+// Connect establishes a connection to the MongoDB instance specified by
+// the passed models.Conenction and stores the resulting client in the internal
+// client map with its URI as key.
 func Connect(ctx context.Context, connection *models.Connection) error {
-
-	buildConnectionUri(connection)
+	if connection.URI == "" {
+		buildConnectionURI(connection)
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection.Uri).SetConnectTimeout(10*time.Second))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection.URI).SetConnectTimeout(10*time.Second))
 	if err != nil {
 		return err
 	}
@@ -53,15 +56,17 @@ func Connect(ctx context.Context, connection *models.Connection) error {
 		return err
 	}
 
-	clients[connection.Uri] = client
+	clients[connection.URI] = client
 	return nil
 }
 
-func GetDatabases(ctx context.Context, connectionUri string) ([]string, error) {
+// GetDatabases returns the databases of the MongoDB instance specified by the
+// passed connectionURI as string slice.
+func GetDatabases(ctx context.Context, connectionURI string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	client, err := getClient(connectionUri)
+	client, err := getClient(connectionURI)
 	if err != nil {
 		return []string{}, err
 	}
@@ -73,31 +78,39 @@ func GetDatabases(ctx context.Context, connectionUri string) ([]string, error) {
 	return databases, nil
 }
 
-func Disconnect(ctx context.Context, connectionUri string) error {
+// Disconnect disconnects from the MongoDB instance specified by
+// the passed connectionURI and removes the related entry from the
+// internal clients map.
+func Disconnect(ctx context.Context, connectionURI string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	client, err := getClient(connectionUri)
+	client, err := getClient(connectionURI)
 	if err != nil {
 		return err
 	}
 	if err = client.Disconnect(ctx); err != nil {
 		return err
 	}
+	delete(clients, connectionURI)
+
 	return nil
 }
 
+// DisconnectAll disconnects from all connected MongoDB instances and
+// cleans up the internal clients map.
 func DisconnectAll(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	for _, client := range clients {
+	for key, client := range clients {
 		client.Disconnect(ctx)
+		delete(clients, key)
 	}
 	return nil
 }
 
-func buildConnectionUri(connection *models.Connection) {
+func buildConnectionURI(connection *models.Connection) {
 	host := connection.Host
 	if host == "" {
 		host = defaultHost
@@ -106,12 +119,12 @@ func buildConnectionUri(connection *models.Connection) {
 	if connection.Port != "" {
 		port = fmt.Sprintf(":%s", connection.Port)
 	}
-	connection.Uri = fmt.Sprintf("mongodb://%s%s", host, port)
+	connection.URI = fmt.Sprintf("mongodb://%s%s", host, port)
 }
 
-func getClient(connectionUri string) (*mongo.Client, error) {
-	if client, ok := clients[connectionUri]; ok {
+func getClient(connectionURI string) (*mongo.Client, error) {
+	if client, ok := clients[connectionURI]; ok {
 		return client, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Not connected to %s", connectionUri))
+	return nil, fmt.Errorf("Not connected to %s", connectionURI)
 }

@@ -16,6 +16,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/gdamore/tcell"
 	"github.com/renkman/mongotui/models"
 	"github.com/rivo/tview"
@@ -28,6 +30,17 @@ type FormWidget struct {
 }
 
 func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
+	header := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWrap(false).
+		SetHighlightedFunc(func(added, removed, remaining []string) {
+			//pages.SwitchToPage(added[0])
+		})
+
+	fmt.Fprint(header, `["multifield"][greenyellow]Individual[""]     `)
+	fmt.Fprint(header, `["uri"][greenyellow]Uri[""]\t`)
+
 	connectionForm := tview.NewForm().
 		AddInputField("Host:", "", 20, nil, nil).
 		AddInputField("Port:", "", 20, tview.InputFieldInteger, nil).
@@ -35,6 +48,7 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddPasswordField("Password:", "", 20, '*', nil).
 		AddInputField("Replicaset:", "", 20, nil, nil).
 		AddCheckbox("TLS/SSL:", false, nil).
+		AddInputField("Uri:", "", 40, nil, nil).
 		AddButton("Connect", nil).
 		AddButton("Cancel", cancel)
 	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
@@ -43,14 +57,15 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(connectionForm, 18, 1, false).
-			AddItem(nil, 0, 1, false), 40, 1, false).
+			AddItem(header, 2, 1, false).
+			AddItem(connectionForm, 20, 1, false).
+			AddItem(nil, 0, 1, false), 60, 1, false).
 		AddItem(nil, 0, 1, false)
 
 	return modal, connectionForm
 }
 
-func GetConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection)) *FormWidget {
+func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection)) *FormWidget {
 	modal, form := createConnectionForm(
 		func() {
 			pages.RemovePage("connection")
@@ -85,6 +100,8 @@ func (f *FormWidget) GetData() models.Connection {
 	connection.User = f.GetFormItem(2).(*tview.InputField).GetText()
 	connection.Password = f.GetFormItem(3).(*tview.InputField).GetText()
 	connection.Replicaset = f.GetFormItem(4).(*tview.InputField).GetText()
+	connection.TLS = f.GetFormItem(5).(*tview.Checkbox).IsChecked()
+	connection.URI = f.GetFormItem(6).(*tview.InputField).GetText()
 
 	return connection
 }

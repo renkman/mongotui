@@ -46,7 +46,7 @@ func main() {
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 
-	CreateMainSreen(ctx, app, pages)
+	createMainSreen(ctx, app, pages)
 
 	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
 		e := fmt.Sprint(err)

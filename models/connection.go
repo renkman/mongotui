@@ -15,12 +15,18 @@
 
 package models
 
+// Connection contains the values needed to connect to a MongoDB instance.
+// It is used by the main application to bind the ui.FormWidget form data
+// and pass it to mongo.Connect.
+//
+// If URI is set only this field is used, otherwise the connection URI is
+// built from the other fields.
 type Connection struct {
 	Host       string
 	Port       string
 	User       string
 	Password   string
 	Replicaset string
-	Tls        bool
-	Uri        string
+	TLS        bool
+	URI        string
 }

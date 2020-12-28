@@ -42,7 +42,7 @@ func createDatabaseTree() *tview.TreeView {
 	return tree
 }
 
-func GetDatabaseTree(app *tview.Application,
+func CreateDatabaseTree(app *tview.Application,
 	pages *tview.Pages,
 	loadCollections func(connectionUri string, database string) []string) *DatabaseTreeWidget {
 	tree := createDatabaseTree()
@@ -72,8 +72,11 @@ func (d *DatabaseTreeWidget) AddDatabases(host string, connectionUri string, dat
 		}
 	}
 	if connectionNode == nil {
+		if host == "" {
+			host = connectionUri
+		}
 		connectionNode = tview.NewTreeNode(host).
-			SetColor(tcell.ColorGreen).
+			SetColor(tcell.ColorGreenYellow).
 			SetReference(connectionUri)
 		d.TreeView.GetRoot().AddChild(connectionNode)
 	}
@@ -89,17 +92,21 @@ func (d *DatabaseTreeWidget) AddDatabases(host string, connectionUri string, dat
 	}
 }
 
+func (d *DatabaseTreeWidget) UpdateCollections() {
+	currentNode := d.TreeView.GetCurrentNode()
+	if currentNode == nil {
+		return
+	}
+	d.addCollections(currentNode)
+}
+
 func (d *DatabaseTreeWidget) getCollections(connectionUri string, name string) []string {
 	return d.loadCollections(connectionUri, name)
 }
 
 func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	reference := node.GetReference()
-	if reference == nil {
-		return
-	}
-
-	if reference.(string) != nodeLevelDatabase {
+	if reference == nil || reference.(string) != nodeLevelDatabase {
 		return
 	}
 
@@ -108,7 +115,7 @@ func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	collections := d.getCollections(connectionUri, node.GetText())
 
 	for _, collection := range collections {
-		node.AddChild(tview.NewTreeNode(collection)).
-			SetReference(nodeLevelCollection)
+		node.AddChild(tview.NewTreeNode(collection).
+			SetReference(nodeLevelCollection))
 	}
 }

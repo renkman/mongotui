@@ -39,7 +39,7 @@ func createQuitModal(quit func(), cancel func()) *tview.Modal {
 	return quitModal
 }
 
-func GetQuitModalWidget(app *tview.Application, pages *tview.Pages) *ModalWidget {
+func CreateQuitModalWidget(app *tview.Application, pages *tview.Pages) *ModalWidget {
 	modal := createQuitModal(
 		func() { app.Stop() },
 		func() {
