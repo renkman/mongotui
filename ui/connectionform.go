@@ -40,7 +40,7 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddButton("Cancel", cancel)
 	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
 	frame := tview.NewFrame(connectionForm).
-		AddText("Set fields individually or directy set the URI.", true, tview.AlignCenter, tcell.ColorYellow)
+		AddText("Set fields individually or directly set the URI.", true, tview.AlignCenter, tcell.ColorYellow)
 
 	modal := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
