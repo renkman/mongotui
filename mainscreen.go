@@ -22,12 +22,12 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
+	"github.com/renkman/mongotui/settings"
 	"github.com/renkman/mongotui/ui"
 	"github.com/rivo/tview"
 )
 
 func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages) {
-
 	databaseTree := ui.CreateDatabaseTree(app, pages, func(connectionUri string, name string) []string {
 		mongo.UseDatabase(connectionUri, name)
 		collections, err := mongo.GetCollections(ctx)
@@ -86,6 +86,11 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	quitModal := ui.CreateQuitModalWidget(app, pages)
 
 	connectionForm := ui.CreateConnectionFormWidget(app, pages, func(connection *models.Connection) {
+		mongo.BuildConnectionURI(connection)
+		if connection.SaveConnection {
+			settings.StoreConnection(connection.Host, connection.URI)
+		}
+
 		err := mongo.Connect(ctx, connection)
 		if err != nil {
 			message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())

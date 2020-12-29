@@ -18,6 +18,9 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"regexp"
+
+	"strings"
 	"time"
 
 	"github.com/renkman/mongotui/models"
@@ -25,6 +28,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
 
 type mongoClient interface {
 	Connect(ctx context.Context, connection *models.Connection) error
@@ -39,9 +44,7 @@ var clients map[string]*mongo.Client = make(map[string]*mongo.Client)
 // the passed models.Conenction and stores the resulting client in the internal
 // client map with its URI as key.
 func Connect(ctx context.Context, connection *models.Connection) error {
-	if connection.URI == "" {
-		buildConnectionURI(connection)
-	}
+	BuildConnectionURI(connection)
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
@@ -110,7 +113,14 @@ func DisconnectAll(ctx context.Context) error {
 	return nil
 }
 
-func buildConnectionURI(connection *models.Connection) {
+// Builds the connection URI and adds it to the passed model
+func BuildConnectionURI(connection *models.Connection) {
+	if connection.URI != "" {
+		if connection.Host == "" {
+			connection.Host = generateClientName(connection.URI)
+		}
+		return
+	}
 	host := connection.Host
 	if host == "" {
 		host = defaultHost
@@ -127,4 +137,16 @@ func getClient(connectionURI string) (*mongo.Client, error) {
 		return client, nil
 	}
 	return nil, fmt.Errorf("Not connected to %s", connectionURI)
+}
+
+func generateClientName(connectionUri string) string {
+	result := connectionNamePattern.FindStringSubmatch(connectionUri)
+
+	if len(result) == 0 || result[2] == "" {
+		return connectionUri
+	}
+	if result[1] == "" {
+		return result[2]
+	}
+	return strings.Join(result[1:], "@")
 }

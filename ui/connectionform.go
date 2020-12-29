@@ -36,6 +36,7 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddInputField("Replicaset:", "", 20, nil, nil).
 		AddCheckbox("TLS/SSL:", false, nil).
 		AddInputField("URI:", "", 40, nil, nil).
+		AddCheckbox("Save connection:", false, nil).
 		AddButton("Connect", nil).
 		AddButton("Cancel", cancel)
 	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
@@ -46,7 +47,7 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(frame, 23, 1, false).
+			AddItem(frame, 25, 1, false).
 			AddItem(nil, 0, 1, false), 60, 1, false).
 		AddItem(nil, 0, 1, false)
 
@@ -61,7 +62,7 @@ func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, conn
 	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
 	formWidget := FormWidget{modal, form, widget}
 
-	formWidget.SetSelectedFunc(connect)
+	formWidget.setSelectedFunc(connect)
 
 	return &formWidget
 }
@@ -74,14 +75,14 @@ func (f *FormWidget) SetEvent(event *tcell.EventKey) {
 	f.setEvent(f, event)
 }
 
-func (f *FormWidget) SetSelectedFunc(connect func(connection *models.Connection)) {
+func (f *FormWidget) setSelectedFunc(connect func(connection *models.Connection)) {
 	f.GetButton(0).SetSelectedFunc(func() {
-		connection := f.GetData()
+		connection := f.getData()
 		connect(&connection)
 	})
 }
 
-func (f *FormWidget) GetData() models.Connection {
+func (f *FormWidget) getData() models.Connection {
 	connection := models.Connection{}
 	connection.Host = f.GetFormItem(0).(*tview.InputField).GetText()
 	connection.Port = f.GetFormItem(1).(*tview.InputField).GetText()
@@ -90,6 +91,7 @@ func (f *FormWidget) GetData() models.Connection {
 	connection.Replicaset = f.GetFormItem(4).(*tview.InputField).GetText()
 	connection.TLS = f.GetFormItem(5).(*tview.Checkbox).IsChecked()
 	connection.URI = f.GetFormItem(6).(*tview.InputField).GetText()
+	connection.SaveConnection = f.GetFormItem(7).(*tview.Checkbox).IsChecked()
 
 	return connection
 }

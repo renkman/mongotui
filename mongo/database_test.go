@@ -32,7 +32,7 @@ func TestDatabaseExecutePrimitiveM(t *testing.T) {
 	command := []byte("{\"listCommands\": 1}")
 
 	Connect(ctx, connection)
-	assert.Equal(t, "mongodb://localhost", connection.Uri)
+	assert.Equal(t, "mongodb://localhost", connection.URI)
 
 	err := UseDatabase("mongodb://localhost", "admin")
 	assert.Nil(t, err)
@@ -52,7 +52,7 @@ func TestDatabaseExecutePrimitiveD(t *testing.T) {
 	command := []byte("{\"listCommands\": 1}")
 
 	Connect(ctx, connection)
-	assert.Equal(t, "mongodb://localhost", connection.Uri)
+	assert.Equal(t, "mongodb://localhost", connection.URI)
 
 	err := UseDatabase("mongodb://localhost", "admin")
 	assert.Nil(t, err)

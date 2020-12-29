@@ -21,12 +21,15 @@ package models
 //
 // If URI is set only this field is used, otherwise the connection URI is
 // built from the other fields.
+//
+// The SaveConnection flag indicates whether the connection should be stored.
 type Connection struct {
-	Host       string
-	Port       string
-	User       string
-	Password   string
-	Replicaset string
-	TLS        bool
-	URI        string
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Replicaset     string
+	TLS            bool
+	URI            string
+	SaveConnection bool
 }
