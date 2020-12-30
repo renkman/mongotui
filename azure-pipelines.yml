@@ -20,6 +20,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps: 
+- bash: |
+  'env'
 - task: GoTool@0
   inputs:
     version: '1.14.7'
