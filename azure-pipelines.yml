@@ -49,6 +49,7 @@ steps:
   displayName: Start MongoDB Docker container for tests
 - bash: |
     go test -v ./...
+  displayName: Run tests
 - task: GitHubRelease@1
   condition: ne(variables.releaseTag, '')
   inputs:

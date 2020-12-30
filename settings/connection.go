@@ -19,9 +19,13 @@ import (
 	"github.com/99designs/keyring"
 )
 
+const serviceName string = "mongoTUI"
+
+// StoreConnection stores the passed connectionURI under the passed key into
+// the secret store of the current OS
 func StoreConnection(key string, connectionURI string) error {
 	ring, err := keyring.Open(keyring.Config{
-		ServiceName: "mongoTUI",
+		ServiceName: serviceName,
 	})
 	if err != nil {
 		return err
@@ -35,9 +39,10 @@ func StoreConnection(key string, connectionURI string) error {
 	return err
 }
 
+// GetConnections gets the stored connections of the secret store of the current OS
 func GetConnections() ([]string, error) {
 	ring, err := keyring.Open(keyring.Config{
-		ServiceName: "mongoTUI",
+		ServiceName: serviceName,
 	})
 	if err != nil {
 		return nil, err
@@ -50,9 +55,11 @@ func GetConnections() ([]string, error) {
 	return keys, nil
 }
 
+// GetConnectionURI gets the connectionURI specified by the passed key of
+// the secret store of the current OS
 func GetConnectionURI(key string) (string, error) {
 	ring, err := keyring.Open(keyring.Config{
-		ServiceName: "mongoTUI",
+		ServiceName: serviceName,
 	})
 	if err != nil {
 		return "", err

@@ -20,10 +20,14 @@ import (
 	"github.com/rivo/tview"
 )
 
+// FocusSetter provides an interface for widgets so the focus can set individally,
+// e. g. to a containing primitve.
 type FocusSetter interface {
 	SetFocus(app *tview.Application)
 }
 
+// Widget is the standard widget extending tview.Primitive containing its name,
+// the current tview.Application and the tview.Pages which contains it.
 type Widget struct {
 	Primitive tview.Primitive
 	Name      string
@@ -31,6 +35,8 @@ type Widget struct {
 	Pages     *tview.Pages
 }
 
+// EventWidget extends ui.Widget with the tcell.Key which fires the event to show
+// the widget.
 type EventWidget struct {
 	*Widget
 	Key tcell.Key

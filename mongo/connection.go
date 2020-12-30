@@ -113,7 +113,7 @@ func DisconnectAll(ctx context.Context) error {
 	return nil
 }
 
-// Builds the connection URI and adds it to the passed model
+// BuildConnectionURI builds the connection URI and adds it to the passed model
 func BuildConnectionURI(connection *models.Connection) {
 	if connection.URI != "" {
 		if connection.Host == "" {
@@ -158,11 +158,11 @@ func getClient(connectionURI string) (*mongo.Client, error) {
 	return nil, fmt.Errorf("Not connected to %s", connectionURI)
 }
 
-func generateClientName(connectionUri string) string {
-	result := connectionNamePattern.FindStringSubmatch(connectionUri)
+func generateClientName(connectionURI string) string {
+	result := connectionNamePattern.FindStringSubmatch(connectionURI)
 
 	if len(result) == 0 || result[2] == "" {
-		return connectionUri
+		return connectionURI
 	}
 	if result[1] == "" {
 		return result[2]
