@@ -22,6 +22,7 @@ pool:
 steps: 
 - bash: |
     env
+  displayName: Show environment variables
 - task: GoTool@0
   inputs:
     version: '1.14.7'
@@ -42,6 +43,12 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
      artifactName: drop
+- bash: |
+    docker pull mongo
+    docker run -d -p 127.0.0.1:27017:27017 mongo
+  displayName: Start MongoDB Docker container for tests
+- bash: |
+    go test -v ./...
 - task: GitHubRelease@1
   condition: ne(variables.releaseTag, '')
   inputs:
