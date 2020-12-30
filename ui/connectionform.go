@@ -27,7 +27,14 @@ type FormWidget struct {
 	*EventWidget
 }
 
-func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
+func createConnectionForm(cancel func(),
+	getSavedConnections func() ([]string, error),
+	loadSavedConnection func(string) (string, error)) (*tview.Flex, *tview.Form) {
+	savedConnections, err := getSavedConnections()
+	if err != nil {
+		savedConnections = []string{}
+	}
+
 	connectionForm := tview.NewForm().
 		AddInputField("Host:", "", 20, nil, nil).
 		AddInputField("Port:", "", 20, tview.InputFieldInteger, nil).
@@ -40,25 +47,41 @@ func createConnectionForm(cancel func()) (*tview.Flex, *tview.Form) {
 		AddButton("Connect", nil).
 		AddButton("Cancel", cancel)
 	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
-	frame := tview.NewFrame(connectionForm).
-		AddText("Set fields individually or directly set the URI.", true, tview.AlignCenter, tcell.ColorYellow)
+
+	connectionDropDown := tview.NewDropDown().
+		SetLabel("Load saved connection: ").
+		SetOptions(savedConnections, nil).
+		SetSelectedFunc(func(key string, index int) {
+			connectionURI, _ := loadSavedConnection(key)
+			connectionForm.GetFormItem(6).(*tview.InputField).SetText(connectionURI)
+		})
+
+	formFlex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(connectionDropDown, 2, 1, false).
+		AddItem(connectionForm, 23, 1, false)
+
+	frame := tview.NewFrame(formFlex).
+		AddText("Set fields individually or directly set the URI.", true, tview.AlignCenter, tcell.ColorYellow).
+		AddText("If the URI is set, the individual fields are ignored.", true, tview.AlignCenter, tcell.ColorYellow)
 
 	modal := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(frame, 25, 1, false).
+			AddItem(frame, 30, 1, false).
 			AddItem(nil, 0, 1, false), 60, 1, false).
 		AddItem(nil, 0, 1, false)
 
 	return modal, connectionForm
 }
 
-func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection)) *FormWidget {
+func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
 	modal, form := createConnectionForm(
 		func() {
 			pages.RemovePage("connection")
-		})
+		},
+		getSavedConnections,
+		loadSavedConnection)
 	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
 	formWidget := FormWidget{modal, form, widget}
 

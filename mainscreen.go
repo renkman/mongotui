@@ -106,7 +106,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		}
 		databaseTree.AddDatabases(connection.Host, connection.URI, databases)
 		pages.RemovePage("connection")
-	})
+	}, settings.GetConnections, settings.GetConnectionURI)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		quitModal.SetEvent(event)
