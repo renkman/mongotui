@@ -21,7 +21,7 @@ pool:
 
 steps: 
 - bash: |
-  'env'
+    env
 - task: GoTool@0
   inputs:
     version: '1.14.7'
