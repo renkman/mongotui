@@ -129,7 +129,26 @@ func BuildConnectionURI(connection *models.Connection) {
 	if connection.Port != "" {
 		port = fmt.Sprintf(":%s", connection.Port)
 	}
-	connection.URI = fmt.Sprintf("mongodb://%s%s", host, port)
+
+	credentials := ""
+	if connection.User != "" {
+		credentials = fmt.Sprintf("%s:%s@", connection.User, connection.Password)
+	}
+
+	var options []string
+	if connection.Replicaset != "" {
+		options = append(options, fmt.Sprintf("replicaSet=%s", connection.Replicaset))
+	}
+	if connection.TLS {
+		options = append(options, "tls=true")
+	}
+
+	optionParameters := strings.Join(options, "&")
+	if optionParameters != "" {
+		optionParameters = fmt.Sprintf("?%s", optionParameters)
+	}
+
+	connection.URI = fmt.Sprintf("mongodb://%s%s%s%s", credentials, host, port, optionParameters)
 }
 
 func getClient(connectionURI string) (*mongo.Client, error) {

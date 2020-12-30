@@ -2,6 +2,7 @@ package settings
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/99designs/keyring"
@@ -9,6 +10,10 @@ import (
 )
 
 func TestKeyring_Get_Set(t *testing.T) {
+	if os.Getenv("AGENT_ID") != "" {
+		t.Skip("Keyring tests do not run on CI environment")
+	}
+
 	ring, _ := keyring.Open(keyring.Config{
 		ServiceName: "mongoTUI",
 	})
@@ -25,6 +30,10 @@ func TestKeyring_Get_Set(t *testing.T) {
 }
 
 func TestKeyring_Keys(t *testing.T) {
+	if os.Getenv("AGENT_ID") != "" {
+		t.Skip("Keyring tests do not run on CI environment")
+	}
+
 	ring, _ := keyring.Open(keyring.Config{
 		ServiceName: "mongoTUI",
 	})

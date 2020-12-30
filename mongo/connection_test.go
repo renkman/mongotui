@@ -22,37 +22,47 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_BuildConnectionURI_WithHost(t *testing.T) {
-	model := &models.Connection{Host: "localhost"}
-	BuildConnectionURI(model)
-
-	assert.Equal(t, "mongodb://localhost", model.URI)
+var connectionTestData = []struct {
+	in  *models.Connection
+	out string
+}{
+	{&models.Connection{}, "mongodb://localhost"},
+	{&models.Connection{Host: "commodore.com"}, "mongodb://commodore.com"},
+	{&models.Connection{Host: "commodore.com", User: "Jay", Password: "Miner"}, "mongodb://Jay:Miner@commodore.com"},
+	{&models.Connection{Host: "commodore.com", Port: "27017"}, "mongodb://commodore.com:27017"},
+	{&models.Connection{Host: "commodore.com", User: "Jay", Password: "Miner", Port: "27017"}, "mongodb://Jay:Miner@commodore.com:27017"},
+	{&models.Connection{Host: "commodore.com", Port: "27017", Replicaset: "foo"}, "mongodb://commodore.com:27017?replicaSet=foo"},
+	{&models.Connection{Host: "commodore.com", Port: "27017", Replicaset: "foo", TLS: true}, "mongodb://commodore.com:27017?replicaSet=foo&tls=true"},
+	{&models.Connection{Host: "commodore.com", User: "Jay", Password: "Miner", Port: "27017", Replicaset: "foo", TLS: true}, "mongodb://Jay:Miner@commodore.com:27017?replicaSet=foo&tls=true"},
 }
 
-func Test_BuildConnectionURI_WithURIWithoutCredentials(t *testing.T) {
-	model := &models.Connection{URI: "mongodb://localhost"}
-	BuildConnectionURI(model)
+func Test_BuildConnectionURI_WitIndividualFields_BuildURI(t *testing.T) {
+	for _, connectionTest := range connectionTestData {
+		t.Run(connectionTest.out, func(t *testing.T) {
+			BuildConnectionURI(connectionTest.in)
 
-	assert.Equal(t, "localhost", model.Host)
+			assert.Equal(t, connectionTest.out, connectionTest.in.URI)
+		})
+	}
 }
 
-func Test_BuildConnectionURI_WithURIWithCredentials(t *testing.T) {
-	model := &models.Connection{URI: "mongodb://foo:bar@localhost"}
-	BuildConnectionURI(model)
-
-	assert.Equal(t, "foo@localhost", model.Host)
+var uriTestData = []struct {
+	in  string
+	out string
+}{
+	{"mongodb://localhost", "localhost"},
+	{"mongodb://foo:bar@localhost", "foo@localhost"},
+	{"mongodb://", "mongodb://"},
+	{"foobar", "foobar"},
 }
 
-func Test_BuildConnectionURI_WithURIWithProtocolOnly(t *testing.T) {
-	model := &models.Connection{URI: "mongodb://"}
-	BuildConnectionURI(model)
+func Test_BuildConnectionURI_WithURI_SetsHost(t *testing.T) {
+	for _, uriTest := range uriTestData {
+		t.Run(uriTest.in, func(t *testing.T) {
+			model := &models.Connection{URI: uriTest.in}
+			BuildConnectionURI(model)
 
-	assert.Equal(t, "mongodb://", model.Host)
-}
-
-func Test_BuildConnectionURI_WithInvalidURI(t *testing.T) {
-	model := &models.Connection{URI: "foobar"}
-	BuildConnectionURI(model)
-
-	assert.Equal(t, "foobar", model.Host)
+			assert.Equal(t, uriTest.out, model.Host)
+		})
+	}
 }

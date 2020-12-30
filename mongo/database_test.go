@@ -26,7 +26,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func TestDatabaseExecutePrimitiveM(t *testing.T) {
+func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 	ctx := context.Background()
 	connection := &models.Connection{Host: "localhost"}
 	command := []byte("{\"listCommands\": 1}")
@@ -40,27 +40,7 @@ func TestDatabaseExecutePrimitiveM(t *testing.T) {
 	result, err := Execute(ctx, command)
 	assert.Nil(t, err)
 
-	writeValueOrdered(result, 0)
-
-	assert.NotNil(t, result)
-	assert.Nil(t, err)
-}
-
-func TestDatabaseExecutePrimitiveD(t *testing.T) {
-	ctx := context.Background()
-	connection := &models.Connection{Host: "localhost"}
-	command := []byte("{\"listCommands\": 1}")
-
-	Connect(ctx, connection)
-	assert.Equal(t, "mongodb://localhost", connection.URI)
-
-	err := UseDatabase("mongodb://localhost", "admin")
-	assert.Nil(t, err)
-
-	result, err := Execute(ctx, command)
-	assert.Nil(t, err)
-
-	writeValueOrdered(result, 0)
+	assert.IsType(t, primitive.D{}, result)
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
