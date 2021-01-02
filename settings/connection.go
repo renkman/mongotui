@@ -22,7 +22,7 @@ import (
 const serviceName string = "mongoTUI"
 
 // CanStoreConnection indicates whether a keyring backend is available to store
-// MongoDB conenction data.
+// MongoDB connection data.
 var CanStoreConnection = checkKeyring()
 
 // StoreConnection stores the passed connectionURI under the passed key into

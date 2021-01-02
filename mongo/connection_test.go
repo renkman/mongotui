@@ -51,7 +51,9 @@ var uriTestData = []struct {
 	out string
 }{
 	{"mongodb://localhost", "localhost"},
+	{"mongodb+srv://commodore.com", "commodore.com"},
 	{"mongodb://foo:bar@localhost", "foo@localhost"},
+	{"mongodb+srv://foo:bar@localhost", "foo@localhost"},
 	{"mongodb://", "mongodb://"},
 	{"foobar", "foobar"},
 }
@@ -63,6 +65,25 @@ func Test_BuildConnectionURI_WithURI_SetsHost(t *testing.T) {
 			BuildConnectionURI(model)
 
 			assert.Equal(t, uriTest.out, model.Host)
+		})
+	}
+}
+
+var connectionHostTestData = []struct {
+	in  *models.Connection
+	out string
+}{
+	{&models.Connection{Host: "apple.com", URI: "mongodb://commodore.com"}, "commodore.com"},
+	{&models.Connection{Host: "apple.com", URI: "mongodb+srv://commodore.com"}, "commodore.com"},
+	{&models.Connection{Host: "apple.com", URI: "mongodb://jay:miner@commodore.com"}, "jay@commodore.com"},
+	{&models.Connection{Host: "apple.com", URI: "mongodb+srv://jay:miner@commodore.com"}, "jay@commodore.com"},
+}
+
+func Test_BuildConnectionURI_WithURIAndHost_SetsHostToURIhostname(t *testing.T) {
+	for _, connectionHostTest := range connectionHostTestData {
+		t.Run(connectionHostTest.out, func(t *testing.T) {
+			BuildConnectionURI(connectionHostTest.in)
+			assert.Equal(t, connectionHostTest.out, connectionHostTest.in.Host)
 		})
 	}
 }

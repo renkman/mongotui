@@ -16,13 +16,10 @@
 package settings
 
 import (
-	"fmt"
-
 	"github.com/99designs/keyring"
 )
 
 func checkKeyring() bool {
 	backends := keyring.AvailableBackends()
-	fmt.Printf("%v", backends)
 	return len(backends) > 0
 }

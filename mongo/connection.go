@@ -29,7 +29,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
+var connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
 
 type mongoClient interface {
 	Connect(ctx context.Context, connection *models.Connection) error
@@ -116,9 +116,7 @@ func DisconnectAll(ctx context.Context) error {
 // BuildConnectionURI builds the connection URI and adds it to the passed model
 func BuildConnectionURI(connection *models.Connection) {
 	if connection.URI != "" {
-		if connection.Host == "" {
-			connection.Host = generateClientName(connection.URI)
-		}
+		connection.Host = generateClientName(connection.URI)
 		return
 	}
 	host := connection.Host
