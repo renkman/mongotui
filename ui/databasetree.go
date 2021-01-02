@@ -20,10 +20,12 @@ import (
 	"github.com/rivo/tview"
 )
 
+// DatabaseTreeWidget displays the current MongoDB connections, including the
+// databases and their collections in a tree view.
 type DatabaseTreeWidget struct {
 	*tview.TreeView
 	*EventWidget
-	loadCollections func(connectionUri string, database string) []string
+	loadCollections func(connectionURI string, database string) []string
 }
 
 const rootText string = "Connections"
@@ -32,19 +34,10 @@ const nodeLevelCollection string = "collection"
 
 var parentMapping map[*tview.TreeNode]*tview.TreeNode = make(map[*tview.TreeNode]*tview.TreeNode)
 
-func createDatabaseTree() *tview.TreeView {
-	tree := tview.NewTreeView()
-	tree.SetBorder(true).SetTitle("Databases")
-
-	root := tview.NewTreeNode(rootText)
-	tree.SetRoot(root).SetCurrentNode(root)
-
-	return tree
-}
-
-func CreateDatabaseTree(app *tview.Application,
+// CreateDatabaseTreeWidget creates a new DatabaseTreeWidget.
+func CreateDatabaseTreeWidget(app *tview.Application,
 	pages *tview.Pages,
-	loadCollections func(connectionUri string, database string) []string) *DatabaseTreeWidget {
+	loadCollections func(connectionURI string, database string) []string) *DatabaseTreeWidget {
 	tree := createDatabaseTree()
 	widget := createEventWidget(tree, "databasetree", tcell.KeyCtrlD, app, pages)
 
@@ -54,30 +47,35 @@ func CreateDatabaseTree(app *tview.Application,
 	return &treeWidget
 }
 
+// SetFocus implements the FocusSetter interface to set the focus to the
+// tcell.TrewView.
 func (d *DatabaseTreeWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(d)
 }
 
+// SetEvent sets the event key of the DatabaseTreeWidget.
 func (d *DatabaseTreeWidget) SetEvent(event *tcell.EventKey) {
 	d.setEvent(d, event)
 }
 
-func (d *DatabaseTreeWidget) AddDatabases(host string, connectionUri string, databases []string) {
+// AddDatabases adds the databases of the instance of the passed connectionURI to the
+// connection tree.
+func (d *DatabaseTreeWidget) AddDatabases(host string, connectionURI string, databases []string) {
 	root := d.TreeView.GetRoot()
 	var connectionNode *tview.TreeNode
 	for _, node := range root.GetChildren() {
-		if node.GetReference().(string) == connectionUri {
+		if node.GetReference().(string) == connectionURI {
 			connectionNode = node
 			break
 		}
 	}
 	if connectionNode == nil {
 		if host == "" {
-			host = connectionUri
+			host = connectionURI
 		}
 		connectionNode = tview.NewTreeNode(host).
 			SetColor(tcell.ColorGreenYellow).
-			SetReference(connectionUri)
+			SetReference(connectionURI)
 		d.TreeView.GetRoot().AddChild(connectionNode)
 	}
 
@@ -92,6 +90,7 @@ func (d *DatabaseTreeWidget) AddDatabases(host string, connectionUri string, dat
 	}
 }
 
+// UpdateCollections removes and re-adds the collections of the selected database.
 func (d *DatabaseTreeWidget) UpdateCollections() {
 	currentNode := d.TreeView.GetCurrentNode()
 	if currentNode == nil {
@@ -100,8 +99,18 @@ func (d *DatabaseTreeWidget) UpdateCollections() {
 	d.addCollections(currentNode)
 }
 
-func (d *DatabaseTreeWidget) getCollections(connectionUri string, name string) []string {
-	return d.loadCollections(connectionUri, name)
+func createDatabaseTree() *tview.TreeView {
+	tree := tview.NewTreeView()
+	tree.SetBorder(true).SetTitle("Databases")
+
+	root := tview.NewTreeNode(rootText)
+	tree.SetRoot(root).SetCurrentNode(root)
+
+	return tree
+}
+
+func (d *DatabaseTreeWidget) getCollections(connectionURI string, name string) []string {
+	return d.loadCollections(connectionURI, name)
 }
 
 func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
@@ -111,8 +120,8 @@ func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	}
 
 	node.ClearChildren()
-	connectionUri := parentMapping[node].GetReference().(string)
-	collections := d.getCollections(connectionUri, node.GetText())
+	connectionURI := parentMapping[node].GetReference().(string)
+	collections := d.getCollections(connectionURI, node.GetText())
 
 	for _, collection := range collections {
 		node.AddChild(tview.NewTreeNode(collection).

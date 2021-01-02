@@ -20,9 +20,32 @@ import (
 	"github.com/rivo/tview"
 )
 
-type ModalWidget struct {
+// QuitModalWidget is the modal to quit the application. It displays the question
+// whether the user really wants to quit and an Ok and a Cancel button.
+type QuitModalWidget struct {
 	*tview.Modal
 	*EventWidget
+}
+
+// CreateQuitModalWidget creates a new QuitModalWidget.
+func CreateQuitModalWidget(app *tview.Application, pages *tview.Pages) *QuitModalWidget {
+	modal := createQuitModal(
+		func() { app.Stop() },
+		func() {
+			pages.RemovePage("quit")
+		})
+	widget := createEventWidget(modal, "quit", tcell.KeyCtrlQ, app, pages)
+	return &QuitModalWidget{modal, widget}
+}
+
+// SetFocus implements the FocusSetter interface to set the focus to the OK button.
+func (m *QuitModalWidget) SetFocus(app *tview.Application) {
+	app.SetFocus(m)
+}
+
+// SetEvent sets the event key of the QuitModalWidget.
+func (m *QuitModalWidget) SetEvent(event *tcell.EventKey) {
+	m.setEvent(m, event)
 }
 
 func createQuitModal(quit func(), cancel func()) *tview.Modal {
@@ -37,22 +60,4 @@ func createQuitModal(quit func(), cancel func()) *tview.Modal {
 			}
 		})
 	return quitModal
-}
-
-func CreateQuitModalWidget(app *tview.Application, pages *tview.Pages) *ModalWidget {
-	modal := createQuitModal(
-		func() { app.Stop() },
-		func() {
-			pages.RemovePage("quit")
-		})
-	widget := createEventWidget(modal, "quit", tcell.KeyCtrlQ, app, pages)
-	return &ModalWidget{modal, widget}
-}
-
-func (m *ModalWidget) SetFocus(app *tview.Application) {
-	app.SetFocus(m)
-}
-
-func (m *ModalWidget) SetEvent(event *tcell.EventKey) {
-	m.setEvent(m, event)
 }

@@ -22,44 +22,40 @@ import (
 )
 
 const name = "messageModal"
-const TypeInfo = 0
-const TypeError = 1
+
+// MessageType indicates the type of a message.
+type MessageType int
+
+// Currently supported message types.
+const (
+	TypeInfo  MessageType = 0
+	TypeError MessageType = 1
+)
 
 var messageTypes = [2]string{"Info", "Error"}
 
+// MessageModalWidget is a simple message dialog, which displays the message type,
+// a text message and an Ok button.
 type MessageModalWidget struct {
 	*tview.Modal
 	*Widget
-	MessageType int
+	MessageType MessageType
 	Message     string
 	Name        string
 }
 
-type UnknownMessageTypeError struct {
-	InvalidValue int
+type unknownMessageTypeError struct {
+	InvalidValue MessageType
 }
 
-func (e *UnknownMessageTypeError) Error() string {
+func (e *unknownMessageTypeError) Error() string {
 	return fmt.Sprintf("Invalid message type %v", e.InvalidValue)
 }
 
-func createMessageModal(messageType int, message string, ok func()) *tview.Modal {
-	modalTypeText := messageTypes[messageType]
-	messageText := fmt.Sprintf("%s\n\n%s", modalTypeText, message)
-
-	modal := tview.NewModal().
-		AddButtons([]string{"Ok"}).
-		SetText(messageText).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			ok()
-		})
-
-	return modal
-}
-
-func CreateMessageModalWidget(app *tview.Application, pages *tview.Pages, messageType int, message string) (*MessageModalWidget, error) {
-	if len(messageTypes) <= messageType || len(messageTypes) < 0 {
-		return nil, &UnknownMessageTypeError{messageType}
+// CreateMessageModalWidget creates a new MessageModalWidget.
+func CreateMessageModalWidget(app *tview.Application, pages *tview.Pages, messageType MessageType, message string) (*MessageModalWidget, error) {
+	if len(messageTypes) <= int(messageType) || len(messageTypes) < 0 {
+		return nil, &unknownMessageTypeError{messageType}
 	}
 
 	modal := createMessageModal(
@@ -74,4 +70,18 @@ func CreateMessageModalWidget(app *tview.Application, pages *tview.Pages, messag
 	app.SetFocus(modal)
 
 	return &MessageModalWidget{modal, widget, messageType, message, name}, nil
+}
+
+func createMessageModal(messageType MessageType, message string, ok func()) *tview.Modal {
+	modalTypeText := messageTypes[messageType]
+	messageText := fmt.Sprintf("%s\n\n%s", modalTypeText, message)
+
+	modal := tview.NewModal().
+		AddButtons([]string{"Ok"}).
+		SetText(messageText).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			ok()
+		})
+
+	return modal
 }

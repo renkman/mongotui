@@ -21,6 +21,9 @@ import (
 	"github.com/rivo/tview"
 )
 
+// FormWidget is a MongoDB connection data form modal. It contains individual fields,
+// a mongodb:// connection URI field to enter connection data, a checkbox for storing
+// the connection data locally and a dropbox to select a former stored connection.
 type FormWidget struct {
 	*tview.Flex
 	*tview.Form
@@ -28,6 +31,38 @@ type FormWidget struct {
 	*EventWidget
 	getSavedConnections func() ([]string, error)
 	loadSavedConnection func(string) (string, error)
+}
+
+// CreateConnectionFormWidget creates a new FormWidget.
+func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), canStoreConnection bool, getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
+	modal, form, dropDown := createConnectionForm(
+		func() {
+			pages.RemovePage("connection")
+		},
+		canStoreConnection)
+	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
+	formWidget := FormWidget{modal, form, dropDown, widget, getSavedConnections, loadSavedConnection}
+
+	formWidget.setButtonSelectedFunc(connect)
+
+	return &formWidget
+}
+
+// SetFocus implements the FocusSetter interface to set the focus the first form item
+// when called.
+func (f *FormWidget) SetFocus(app *tview.Application) {
+	savedConnections, err := f.getSavedConnections()
+	if err != nil {
+		savedConnections = []string{}
+	}
+	f.SetOptions(savedConnections, f.setDropBoxSelectedFunc)
+
+	app.SetFocus(f.GetFormItem(0))
+}
+
+// SetEvent sets the event key of the FormWidget.
+func (f *FormWidget) SetEvent(event *tcell.EventKey) {
+	f.setEvent(f, event)
 }
 
 func createConnectionForm(cancel func(),
@@ -70,34 +105,6 @@ func createConnectionForm(cancel func(),
 		AddItem(nil, 0, 1, false)
 
 	return modal, connectionForm, connectionDropDown
-}
-
-func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), canStoreConnection bool, getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
-	modal, form, dropDown := createConnectionForm(
-		func() {
-			pages.RemovePage("connection")
-		},
-		canStoreConnection)
-	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
-	formWidget := FormWidget{modal, form, dropDown, widget, getSavedConnections, loadSavedConnection}
-
-	formWidget.setButtonSelectedFunc(connect)
-
-	return &formWidget
-}
-
-func (f *FormWidget) SetFocus(app *tview.Application) {
-	savedConnections, err := f.getSavedConnections()
-	if err != nil {
-		savedConnections = []string{}
-	}
-	f.SetOptions(savedConnections, f.setDropBoxSelectedFunc)
-
-	app.SetFocus(f.GetFormItem(0))
-}
-
-func (f *FormWidget) SetEvent(event *tcell.EventKey) {
-	f.setEvent(f, event)
 }
 
 func (f *FormWidget) setButtonSelectedFunc(connect func(connection *models.Connection)) {

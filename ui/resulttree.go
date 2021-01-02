@@ -22,19 +22,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// ResultTreeWidget is the tree view to display the MondoDB command results.
 type ResultTreeWidget struct {
 	*tview.TreeView
 	*Widget
 }
 
-func createResultTree() *tview.TreeView {
-	tree := tview.NewTreeView()
-	tree.SetBorder(true).SetTitle("Result")
-
-	return tree
-}
-
-func CreateResultTree(app *tview.Application,
+// CreateResultTreeWidget creates a new ResultTreeWidget.
+func CreateResultTreeWidget(app *tview.Application,
 	pages *tview.Pages) *ResultTreeWidget {
 	tree := createResultTree()
 	widget := createWidget(tree, "resulttree", app, pages)
@@ -44,11 +39,20 @@ func CreateResultTree(app *tview.Application,
 	return &treeWidget
 }
 
+// SetResult sets the result returned by the executed MongoDB command to the
+// tcell.TreeView.
 func (r *ResultTreeWidget) SetResult(result interface{}) {
 	root := tview.NewTreeNode("Result Collection")
 	r.TreeView.SetRoot(root).SetCurrentNode(root)
 
 	addNode(root, result)
+}
+
+func createResultTree() *tview.TreeView {
+	tree := tview.NewTreeView()
+	tree.SetBorder(true).SetTitle("Result")
+
+	return tree
 }
 
 func addNode(node *tview.TreeNode, value interface{}) {

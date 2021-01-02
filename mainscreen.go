@@ -28,7 +28,7 @@ import (
 )
 
 func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages) {
-	databaseTree := ui.CreateDatabaseTree(app, pages, func(connectionUri string, name string) []string {
+	databaseTree := ui.CreateDatabaseTreeWidget(app, pages, func(connectionUri string, name string) []string {
 		mongo.UseDatabase(connectionUri, name)
 		collections, err := mongo.GetCollections(ctx)
 		if err != nil {
@@ -39,7 +39,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		return collections
 	})
 
-	resultView := ui.CreateResultTree(app, pages)
+	resultView := ui.CreateResultTreeWidget(app, pages)
 	editor := tview.NewInputField().
 		SetLabel("Command: ").
 		SetFieldWidth(200)
