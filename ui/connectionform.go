@@ -24,16 +24,14 @@ import (
 type FormWidget struct {
 	*tview.Flex
 	*tview.Form
+	*tview.DropDown
 	*EventWidget
+	getSavedConnections func() ([]string, error)
+	loadSavedConnection func(string) (string, error)
 }
 
 func createConnectionForm(cancel func(),
-	getSavedConnections func() ([]string, error),
-	loadSavedConnection func(string) (string, error)) (*tview.Flex, *tview.Form) {
-	savedConnections, err := getSavedConnections()
-	if err != nil {
-		savedConnections = []string{}
-	}
+	canStoreConnection bool) (*tview.Flex, *tview.Form, *tview.DropDown) {
 
 	connectionForm := tview.NewForm().
 		AddInputField("Host:", "", 20, nil, nil).
@@ -42,23 +40,22 @@ func createConnectionForm(cancel func(),
 		AddPasswordField("Password:", "", 20, '*', nil).
 		AddInputField("Replicaset:", "", 20, nil, nil).
 		AddCheckbox("TLS/SSL:", false, nil).
-		AddInputField("URI:", "", 40, nil, nil).
-		AddCheckbox("Save connection:", false, nil).
-		AddButton("Connect", nil).
+		AddInputField("URI:", "", 40, nil, nil)
+	if canStoreConnection {
+		connectionForm.AddCheckbox("Save connection:", false, nil)
+	}
+	connectionForm.AddButton("Connect", nil).
 		AddButton("Cancel", cancel)
 	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
 
 	connectionDropDown := tview.NewDropDown().
-		SetLabel("Load saved connection: ").
-		SetOptions(savedConnections, nil).
-		SetSelectedFunc(func(key string, index int) {
-			connectionURI, _ := loadSavedConnection(key)
-			connectionForm.GetFormItem(6).(*tview.InputField).SetText(connectionURI)
-		})
+		SetLabel("Load saved connection: ")
 
-	formFlex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(connectionDropDown, 2, 1, false).
-		AddItem(connectionForm, 23, 1, false)
+	formFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+	if canStoreConnection {
+		formFlex.AddItem(connectionDropDown, 2, 1, false)
+	}
+	formFlex.AddItem(connectionForm, 23, 1, false)
 
 	frame := tview.NewFrame(formFlex).
 		AddText("Set fields individually or directly set the URI.", true, tview.AlignCenter, tcell.ColorYellow).
@@ -72,25 +69,30 @@ func createConnectionForm(cancel func(),
 			AddItem(nil, 0, 1, false), 60, 1, false).
 		AddItem(nil, 0, 1, false)
 
-	return modal, connectionForm
+	return modal, connectionForm, connectionDropDown
 }
 
-func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
-	modal, form := createConnectionForm(
+func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), canStoreConnection bool, getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
+	modal, form, dropDown := createConnectionForm(
 		func() {
 			pages.RemovePage("connection")
 		},
-		getSavedConnections,
-		loadSavedConnection)
+		canStoreConnection)
 	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
-	formWidget := FormWidget{modal, form, widget}
+	formWidget := FormWidget{modal, form, dropDown, widget, getSavedConnections, loadSavedConnection}
 
-	formWidget.setSelectedFunc(connect)
+	formWidget.setButtonSelectedFunc(connect)
 
 	return &formWidget
 }
 
 func (f *FormWidget) SetFocus(app *tview.Application) {
+	savedConnections, err := f.getSavedConnections()
+	if err != nil {
+		savedConnections = []string{}
+	}
+	f.SetOptions(savedConnections, f.setDropBoxSelectedFunc)
+
 	app.SetFocus(f.GetFormItem(0))
 }
 
@@ -98,11 +100,16 @@ func (f *FormWidget) SetEvent(event *tcell.EventKey) {
 	f.setEvent(f, event)
 }
 
-func (f *FormWidget) setSelectedFunc(connect func(connection *models.Connection)) {
+func (f *FormWidget) setButtonSelectedFunc(connect func(connection *models.Connection)) {
 	f.GetButton(0).SetSelectedFunc(func() {
 		connection := f.getData()
 		connect(&connection)
 	})
+}
+
+func (f *FormWidget) setDropBoxSelectedFunc(key string, index int) {
+	connectionURI, _ := f.loadSavedConnection(key)
+	f.GetFormItem(6).(*tview.InputField).SetText(connectionURI)
 }
 
 func (f *FormWidget) getData() models.Connection {
@@ -114,7 +121,9 @@ func (f *FormWidget) getData() models.Connection {
 	connection.Replicaset = f.GetFormItem(4).(*tview.InputField).GetText()
 	connection.TLS = f.GetFormItem(5).(*tview.Checkbox).IsChecked()
 	connection.URI = f.GetFormItem(6).(*tview.InputField).GetText()
-	connection.SaveConnection = f.GetFormItem(7).(*tview.Checkbox).IsChecked()
+	if f.GetFormItemCount() == 8 {
+		connection.SaveConnection = f.GetFormItem(7).(*tview.Checkbox).IsChecked()
+	}
 
 	return connection
 }

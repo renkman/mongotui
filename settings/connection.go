@@ -21,6 +21,8 @@ import (
 
 const serviceName string = "mongoTUI"
 
+var CanStoreConnection = checkKeyring()
+
 // StoreConnection stores the passed connectionURI under the passed key into
 // the secret store of the current OS
 func StoreConnection(key string, connectionURI string) error {

@@ -87,7 +87,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	connectionForm := ui.CreateConnectionFormWidget(app, pages, func(connection *models.Connection) {
 		mongo.BuildConnectionURI(connection)
-		if connection.SaveConnection {
+		if settings.CanStoreConnection && connection.SaveConnection {
 			settings.StoreConnection(connection.Host, connection.URI)
 		}
 
@@ -106,7 +106,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		}
 		databaseTree.AddDatabases(connection.Host, connection.URI, databases)
 		pages.RemovePage("connection")
-	}, settings.GetConnections, settings.GetConnectionURI)
+	}, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		quitModal.SetEvent(event)
