@@ -2,7 +2,7 @@ package settings
 
 import (
 	"fmt"
-	//"os"
+	"os"
 	"testing"
 
 	"github.com/99designs/keyring"
@@ -13,9 +13,12 @@ func TestKeyring_Get_Set(t *testing.T) {
 	// if os.Getenv("AGENT_ID") != "" {
 	// 	t.Skip("Keyring tests do not run on CI environment")
 	// }
+	homeDir, err := os.UserHomeDir()
 
 	ring, err := keyring.Open(keyring.Config{
-		ServiceName: "mongoTUI",
+		ServiceName:     "mongoTUI",
+		AllowedBackends: []keyring.BackendType{keyring.FileBackend},
+		FileDir:         homeDir,
 	})
 	assert.Nil(t, err)
 
