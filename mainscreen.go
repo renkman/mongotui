@@ -27,7 +27,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages) {
+func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.Pages, connection *models.Connection) {
 	databaseTree := ui.CreateDatabaseTreeWidget(app, pages, func(connectionUri string, name string) []string {
 		mongo.UseDatabase(connectionUri, name)
 		collections, err := mongo.GetCollections(ctx)
@@ -85,7 +85,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	quitModal := ui.CreateQuitModalWidget(app, pages)
 
-	connectionForm := ui.CreateConnectionFormWidget(app, pages, func(connection *models.Connection) {
+	connect := func(connection *models.Connection) {
 		mongo.BuildConnectionURI(connection)
 		if settings.CanStoreConnection && connection.SaveConnection {
 			settings.StoreConnection(connection.Host, connection.URI)
@@ -106,7 +106,9 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		}
 		databaseTree.AddDatabases(connection.Host, connection.URI, databases)
 		pages.RemovePage("connection")
-	}, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
+	}
+
+	connectionForm := ui.CreateConnectionFormWidget(app, pages, connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		quitModal.SetEvent(event)
@@ -119,5 +121,8 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		return event
 	})
 
+	if connection.URI != "" {
+		connect(connection)
+	}
 	app.SetFocus(editor)
 }

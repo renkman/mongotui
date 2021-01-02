@@ -16,8 +16,21 @@
 package settings
 
 import (
+	"flag"
+
 	"github.com/99designs/keyring"
+	"github.com/renkman/mongotui/models"
 )
+
+// InitCommandLineArgs initializes the command line arguments. Currently, it is just
+// -c to set a connection URI to connect to a MongoDB instance directly after
+// application start.
+func InitCommandLineArgs(connection *models.Connection) {
+	flag.StringVar(&connection.URI,
+		"c",
+		"",
+		"MongoDB Connection URI to connect directly after the application start")
+}
 
 func checkKeyring() bool {
 	backends := keyring.AvailableBackends()

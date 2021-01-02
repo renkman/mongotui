@@ -17,11 +17,14 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 
+	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
+	"github.com/renkman/mongotui/settings"
 	"github.com/rivo/tview"
 )
 
@@ -43,10 +46,14 @@ func main() {
 		}
 	}()
 
+	connection := &models.Connection{}
+	settings.InitCommandLineArgs(connection)
+	flag.Parse()
+
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 
-	createMainSreen(ctx, app, pages)
+	createMainSreen(ctx, app, pages, connection)
 
 	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
 		e := fmt.Sprint(err)

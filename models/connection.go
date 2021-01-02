@@ -33,3 +33,15 @@ type Connection struct {
 	URI            string
 	SaveConnection bool
 }
+
+// Set implements the flag.Value interface and thus allows to set the URI via command
+// line argument.
+func (c *Connection) Set(uri string) error {
+	c.URI = uri
+	return nil
+}
+
+// String implements the flag.Value interface and returns the URI.
+func (c *Connection) String() string {
+	return c.URI
+}
