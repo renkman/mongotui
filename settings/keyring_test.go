@@ -2,7 +2,7 @@ package settings
 
 import (
 	"fmt"
-	"os"
+	//"os"
 	"testing"
 
 	"github.com/99designs/keyring"
@@ -10,35 +10,40 @@ import (
 )
 
 func TestKeyring_Get_Set(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
-		t.Skip("Keyring tests do not run on CI environment")
-	}
+	// if os.Getenv("AGENT_ID") != "" {
+	// 	t.Skip("Keyring tests do not run on CI environment")
+	// }
 
-	ring, _ := keyring.Open(keyring.Config{
+	ring, err := keyring.Open(keyring.Config{
 		ServiceName: "mongoTUI",
 	})
+	assert.Nil(t, err)
 
-	_ = ring.Set(keyring.Item{
-		Key:   "Connection",
+	err = ring.Set(keyring.Item{
+		Key:   "connection",
 		Data:  []byte("secret mongo connection"),
 		Label: "MongoDB Connection",
 	})
+	assert.Nil(t, err)
 
-	item, _ := ring.Get("foo")
+	item, err := ring.Get("connection")
+	assert.Nil(t, err)
 
-	assert.Equal(t, []byte("secret-bar"), item.Data)
+	assert.Equal(t, []byte("secret mongo connection"), item.Data)
 }
 
 func TestKeyring_Keys(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
-		t.Skip("Keyring tests do not run on CI environment")
-	}
+	// if os.Getenv("AGENT_ID") != "" {
+	// 	t.Skip("Keyring tests do not run on CI environment")
+	// }
 
-	ring, _ := keyring.Open(keyring.Config{
+	ring, err := keyring.Open(keyring.Config{
 		ServiceName: "mongoTUI",
 	})
+	assert.Nil(t, err)
 
-	keys, _ := ring.Keys()
+	keys, err := ring.Keys()
+	assert.Nil(t, err)
 
 	fmt.Printf("%v", keys)
 }
