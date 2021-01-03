@@ -1,3 +1,5 @@
+// Copyright 2020 Jan Renken
+
 // This file is part of MongoTUI.
 
 // MongoTUI is free software: you can redistribute it and/or modify
@@ -13,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with MongoTUI.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package settings provides functions for
 package settings
 
 import (

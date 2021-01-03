@@ -1,3 +1,5 @@
+// Copyright 2020 Jan Renken
+
 // This file is part of MongoTUI.
 
 // MongoTUI is free software: you can redistribute it and/or modify

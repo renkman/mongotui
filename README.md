@@ -8,8 +8,11 @@
 
 [MongoDB](https://www.mongodb.com/ "MongoDB") TUI client written in [Go](https://golang.org/ "Go"), using the [tview](https://github.com/rivo/tview/ "tview") library for UI, [Keyring](https://github.com/99designs/keyring) for storing connections and the [MongoDB Go Driver](https://github.com/mongodb/mongo-go-driver/ "MongoDB Go Driver").
 
+The unit tests are using [Testify](https://github.com/stretchr/testify "Testify").
+
 ## Features
 
-- Tree view of the connected client, its databases and collections
+- Tree view of the connected instance, its databases and collections
 - Command execution
 - Result tree view
+
