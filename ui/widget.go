@@ -54,7 +54,7 @@ func createEventWidget(primitive tview.Primitive, name string, key tcell.Key, ap
 	return &w
 }
 
-func (w *EventWidget) setEvent(f FocusSetter, event *tcell.EventKey, isModal bool) {
+func (w *EventWidget) handleEvent(f FocusSetter, event *tcell.EventKey, isModal bool) {
 	if event.Key() != w.Key {
 		return
 	}

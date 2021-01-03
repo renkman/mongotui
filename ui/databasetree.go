@@ -57,9 +57,9 @@ func (d *DatabaseTreeWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(d)
 }
 
-// HandleEvent sets the event key of the DatabaseTreeWidget.
+// HandleEvent handles the event key of the DatabaseTreeWidget.
 func (d *DatabaseTreeWidget) HandleEvent(event *tcell.EventKey) {
-	d.setEvent(d, event, false)
+	d.handleEvent(d, event, false)
 }
 
 // HandleDiconnectionEvent disconnects from the selected instance if a client node is

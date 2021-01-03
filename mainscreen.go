@@ -118,10 +118,10 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	connectionForm := ui.CreateConnectionFormWidget(app, pages, connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		quitModal.SetEvent(event)
-		connectionForm.SetEvent(event)
+		quitModal.HandleEvent(event)
+		connectionForm.HandleEvent(event)
 		databaseTree.HandleEvent(event)
-		resultView.SetEvent(event)
+		resultView.HandleEvent(event)
 
 		if event.Key() == tcell.KeyCtrlE {
 			app.SetFocus(editor)

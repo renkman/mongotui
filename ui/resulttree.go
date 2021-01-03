@@ -57,9 +57,9 @@ func (r *ResultTreeWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(r)
 }
 
-// SetEvent sets the event key of the ResultTreeWidget.
-func (r *ResultTreeWidget) SetEvent(event *tcell.EventKey) {
-	r.setEvent(r, event, false)
+// HandleEvent handles the event key of the ResultTreeWidget.
+func (r *ResultTreeWidget) HandleEvent(event *tcell.EventKey) {
+	r.handleEvent(r, event, false)
 }
 
 func createResultTree() *tview.TreeView {

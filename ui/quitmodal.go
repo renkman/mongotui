@@ -45,9 +45,9 @@ func (m *QuitModalWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(m)
 }
 
-// SetEvent sets the event key of the QuitModalWidget.
-func (m *QuitModalWidget) SetEvent(event *tcell.EventKey) {
-	m.setEvent(m, event, true)
+// HandleEvent handles the event key of the QuitModalWidget.
+func (m *QuitModalWidget) HandleEvent(event *tcell.EventKey) {
+	m.handleEvent(m, event, true)
 }
 
 func createQuitModal(quit func(), cancel func()) *tview.Modal {
