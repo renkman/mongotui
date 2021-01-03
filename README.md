@@ -40,4 +40,6 @@ The command editor is accessible by `<Ctrl>`-`<e>`. The commands are fired on th
 
 The command result is shown in the result panel as a tree view. You can access it with `<Ctrl>`-`<r>` and navigate through the nodes with the arrow keys.
 
-`<Ctrl>`-`<q>`  disconnects the open connections and quits the application.
+`<Ctrl>`-`<t>` disconnects (terminates) the open connections.
+
+`<Ctrl>`-`<q>` disconnects the open connections and quits the application.

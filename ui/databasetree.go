@@ -30,9 +30,11 @@ type DatabaseTreeWidget struct {
 	loadCollections func(connectionURI string, database string) []string
 }
 
-const rootText string = "Connections"
-const nodeLevelDatabase string = "database"
-const nodeLevelCollection string = "collection"
+const (
+	rootText            string = "Connections"
+	nodeLevelDatabase   string = "database"
+	nodeLevelCollection string = "collection"
+)
 
 var parentMapping map[*tview.TreeNode]*tview.TreeNode = make(map[*tview.TreeNode]*tview.TreeNode)
 
@@ -55,9 +57,38 @@ func (d *DatabaseTreeWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(d)
 }
 
-// SetEvent sets the event key of the DatabaseTreeWidget.
-func (d *DatabaseTreeWidget) SetEvent(event *tcell.EventKey) {
+// HandleEvent sets the event key of the DatabaseTreeWidget.
+func (d *DatabaseTreeWidget) HandleEvent(event *tcell.EventKey) {
 	d.setEvent(d, event, false)
+}
+
+// HandleDiconnectionEvent disconnects from the selected instance if a client node is
+// selected.
+func (d *DatabaseTreeWidget) HandleDiconnectionEvent(event *tcell.EventKey, disconnect func(clientKey string) error) error {
+	if event.Key() != tcell.KeyCtrlT {
+		return nil
+	}
+	node := d.GetCurrentNode()
+	reference := node.GetReference()
+	if reference == nil ||
+		reference.(string) == nodeLevelDatabase ||
+		reference.(string) == nodeLevelCollection {
+		return nil
+	}
+	err := disconnect(reference.(string))
+	if err != nil {
+		return err
+	}
+
+	root := d.GetRoot()
+	connections := root.GetChildren()
+	root.ClearChildren()
+	for _, connection := range connections {
+		if connection != node {
+			root.AddChild(connection)
+		}
+	}
+	return nil
 }
 
 // AddDatabases adds the databases of the instance of the passed connectionURI to the

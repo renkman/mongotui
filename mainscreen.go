@@ -58,13 +58,18 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	commandsView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
-		SetWrap(false).
+		SetWrap(true).
 		SetTextAlign(tview.AlignCenter)
 
 	commandsView.SetBorder(true).
 		SetTitle("Commands")
 
-	fmt.Fprint(commandsView, "\n[white]Ctrl - Q [darkcyan]Quit\t[white]Ctrl - C[darkcyan] Connect to database\t[white]Ctrl - E[darkcyan] Enter command\t[white]Ctrl - D[darkcyan] Database tree\t[white]Ctrl - R[darkcyan] Result view")
+	fmt.Fprint(commandsView, "\n[white]Ctrl - Q[darkcyan]uit\t"+
+		"[white]Ctrl - C[darkcyan]onnect to database\t"+
+		"[white]Ctrl - E[darkcyan]nter command\t"+
+		"[white]Ctrl - D[darkcyan]atabase tree\t"+
+		"[white]Ctrl - R[darkcyan]esult view\t"+
+		"[white]Ctrl - T[darkcyan]erminate selected connection")
 
 	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
@@ -115,11 +120,20 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		quitModal.SetEvent(event)
 		connectionForm.SetEvent(event)
-		databaseTree.SetEvent(event)
+		databaseTree.HandleEvent(event)
 		resultView.SetEvent(event)
 
 		if event.Key() == tcell.KeyCtrlE {
 			app.SetFocus(editor)
+		}
+
+		err := databaseTree.HandleDiconnectionEvent(event, func(key string) error {
+			return mongo.Disconnect(ctx, key)
+		})
+		if err != nil {
+			message := fmt.Sprintf("Attempt to disconnect failed:\n\n%s", err.Error())
+			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+			return event
 		}
 
 		if event.Key() == tcell.KeyCtrlC {
