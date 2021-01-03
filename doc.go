@@ -31,7 +31,7 @@ The command editor is accessible by <Ctrl>-<e>. The commands are fired on the da
 
 The command result is shown in the result panel as a tree view. You can access it with <Ctrl>-<r> and navigate through the nodes with the arrow keys.
 
-<Ctrl>-<t> disconnects (terminates) the open connections.
+<Ctrl>-<t> disconnects (terminates) the selected connection.
 
 <Ctrl>-<q> disconnects the open connections and quits the application.
 */
