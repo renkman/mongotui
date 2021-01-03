@@ -48,8 +48,8 @@ func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, conn
 	return &formWidget
 }
 
-// SetFocus implements the FocusSetter interface to set the focus the first form item
-// when called.
+// SetFocus implements the FocusSetter interface to set the focus tview.Form when
+// called.
 func (f *FormWidget) SetFocus(app *tview.Application) {
 	savedConnections, err := f.getSavedConnections()
 	if err != nil {
@@ -57,7 +57,7 @@ func (f *FormWidget) SetFocus(app *tview.Application) {
 	}
 	f.SetOptions(savedConnections, f.setDropBoxSelectedFunc)
 
-	app.SetFocus(f.GetFormItem(0))
+	app.SetFocus(f.Form)
 }
 
 // SetEvent sets the event key of the FormWidget.
