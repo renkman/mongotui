@@ -10,9 +10,34 @@
 
 The unit tests are using [Testify](https://github.com/stretchr/testify "Testify").
 
+MongoTUI allows to connect to multiple MongoDB instances and execute commands in JSON syntax on them.
+
 ## Features
 
 - Tree view of the connected instance, its databases and collections
 - Command execution
 - Result tree view
 
+## Installation
+
+Just download a release and copy the mongotui binary to your favorite destination.
+
+## Instruction manual
+
+To start MongoTUI just run mongotui without arguments.
+
+You can run mongotui with the -c argument specifying a MongoDB connection URI to directly connect to a database, for example:
+
+```
+mongotui -c mongodb://localhost
+```
+
+Press `<Ctrl>`-`<c>` to connect to a MongoDB instance, you can enter the connection parameters individually or the connection URI as well. Notice that the connection URI always wins, if the individual fields and the connection URI are filled.
+
+The open database connections, accessed by `<Ctrl>`-`<d>`, their databases and collections are displayed as a tree view in the left application panel. You can navigate through the nodes with the arrow keys or left-click on them.
+
+The command editor is accessible by `<Ctrl>`-`<e>`. The commands are fired on the database which are selected in the tree view by pressing `<Enter>` or `<Return>` in the command editor.
+
+The command result is shown in the result panel as a tree view. You can access it with `<Ctrl>`-`<r>` and navigate through the nodes with the arrow keys.
+
+`<Ctrl>`-`<q>`  disconnects the open connections and quits the application.
