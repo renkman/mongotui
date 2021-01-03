@@ -48,14 +48,14 @@ func CreateDatabaseTreeWidget(app *tview.Application,
 }
 
 // SetFocus implements the FocusSetter interface to set the focus to the
-// tcell.TrewView.
+// tview.TreeView.
 func (d *DatabaseTreeWidget) SetFocus(app *tview.Application) {
 	app.SetFocus(d)
 }
 
 // SetEvent sets the event key of the DatabaseTreeWidget.
 func (d *DatabaseTreeWidget) SetEvent(event *tcell.EventKey) {
-	d.setEvent(d, event)
+	d.setEvent(d, event, false)
 }
 
 // AddDatabases adds the databases of the instance of the passed connectionURI to the

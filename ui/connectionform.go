@@ -62,7 +62,7 @@ func (f *FormWidget) SetFocus(app *tview.Application) {
 
 // SetEvent sets the event key of the FormWidget.
 func (f *FormWidget) SetEvent(event *tcell.EventKey) {
-	f.setEvent(f, event)
+	f.setEvent(f, event, true)
 }
 
 func createConnectionForm(cancel func(),

@@ -62,7 +62,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 	commandsView.SetBorder(true).
 		SetTitle("Commands")
 
-	fmt.Fprint(commandsView, "\n[white]Ctrl - Q [darkcyan]Quit\t[white]Ctrl - C[darkcyan] Connect to database")
+	fmt.Fprint(commandsView, "\n[white]Ctrl - Q [darkcyan]Quit\t[white]Ctrl - C[darkcyan] Connect to database\t[white]Ctrl - E[darkcyan] Enter command\t[white]Ctrl - D[darkcyan] Database tree\t[white]Ctrl - R[darkcyan] Result view")
 
 	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
@@ -114,6 +114,11 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		quitModal.SetEvent(event)
 		connectionForm.SetEvent(event)
 		databaseTree.SetEvent(event)
+		resultView.SetEvent(event)
+
+		if event.Key() == tcell.KeyCtrlE {
+			app.SetFocus(editor)
+		}
 
 		if event.Key() == tcell.KeyCtrlC {
 			return tcell.NewEventKey(tcell.KeyNUL, ' ', tcell.ModNone)

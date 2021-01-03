@@ -52,10 +52,12 @@ func createEventWidget(primitive tview.Primitive, name string, key tcell.Key, ap
 	return &w
 }
 
-func (w *EventWidget) setEvent(f FocusSetter, event *tcell.EventKey) {
+func (w *EventWidget) setEvent(f FocusSetter, event *tcell.EventKey, isModal bool) {
 	if event.Key() != w.Key {
 		return
 	}
-	w.Pages.AddPage(w.Name, w.Primitive, true, true)
+	if isModal {
+		w.Pages.AddPage(w.Name, w.Primitive, true, true)
+	}
 	f.SetFocus(w.App)
 }
