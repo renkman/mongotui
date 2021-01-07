@@ -68,14 +68,11 @@ func (d *DatabaseTreeWidget) HandleDiconnectionEvent(event *tcell.EventKey, disc
 	if event.Key() != tcell.KeyCtrlT {
 		return nil
 	}
-	node := d.GetCurrentNode()
-	reference := node.GetReference()
-	if reference == nil ||
-		reference.(string) == nodeLevelDatabase ||
-		reference.(string) == nodeLevelCollection {
+	node := d.getCurrentClientNode()
+	if node == nil {
 		return nil
 	}
-	err := disconnect(reference.(string))
+	err := disconnect(node.GetReference().(string))
 	if err != nil {
 		return err
 	}
@@ -89,6 +86,15 @@ func (d *DatabaseTreeWidget) HandleDiconnectionEvent(event *tcell.EventKey, disc
 		}
 	}
 	return nil
+}
+
+// GetSelectedConnection returns the currently selected connection of the tree view.
+func (d *DatabaseTreeWidget) GetSelectedConnection() string {
+	node := d.getCurrentClientNode()
+	if node == nil {
+		return ""
+	}
+	return node.GetReference().(string)
 }
 
 // AddDatabases adds the databases of the instance of the passed connectionURI to the
@@ -160,4 +166,15 @@ func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 		node.AddChild(tview.NewTreeNode(collection).
 			SetReference(nodeLevelCollection))
 	}
+}
+
+func (d *DatabaseTreeWidget) getCurrentClientNode() *tview.TreeNode {
+	node := d.GetCurrentNode()
+	reference := node.GetReference()
+	if reference == nil ||
+		reference.(string) == nodeLevelDatabase ||
+		reference.(string) == nodeLevelCollection {
+		return nil
+	}
+	return node
 }

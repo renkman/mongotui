@@ -107,12 +107,11 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 		databases, err := mongo.GetDatabases(ctx, connection.URI)
 		if err != nil {
-			message := fmt.Sprintf("Getting databeses of %s failed:\n\n%s", connection.Host, err.Error())
+			message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 			return
 		}
 		databaseTree.AddDatabases(connection.Host, connection.URI, databases)
-		pages.RemovePage("connection")
 	}
 
 	connectionForm := ui.CreateConnectionFormWidget(app, pages, connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
@@ -125,6 +124,32 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 		if event.Key() == tcell.KeyCtrlE {
 			app.SetFocus(editor)
+		}
+
+		if event.Key() == tcell.KeyCtrlU {
+			connectionURI := databaseTree.GetSelectedConnection()
+			if connectionURI == "" {
+				message := fmt.Sprintf("No host selected")
+				ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+				return event
+			}
+
+			ui.CreateDatabaseFormWidget(app, pages, func(name string) {
+				err := mongo.UseDatabase(connectionURI, name)
+				if err != nil {
+					message := fmt.Sprintf("Use database on %s failed:\n\n%s", connection.Host, err.Error())
+					ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+				}
+
+				// databases, err := mongo.GetDatabases(ctx, connectionURI)
+				// if err != nil {
+				// 	message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
+				// 	ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+				// }
+				// databaseTree.AddDatabases(key, connectionURI, databases)
+			}).SetFocus(app)
+
+			return event
 		}
 
 		err := databaseTree.HandleDiconnectionEvent(event, func(key string) error {

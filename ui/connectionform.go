@@ -23,6 +23,8 @@ import (
 	"github.com/rivo/tview"
 )
 
+const connectionFormWidget string = "connection"
+
 // FormWidget is a MongoDB connection data form modal. It contains individual fields,
 // a mongodb:// connection URI field to enter connection data, a checkbox for storing
 // the connection data locally and a dropbox to select a former stored connection.
@@ -39,10 +41,10 @@ type FormWidget struct {
 func CreateConnectionFormWidget(app *tview.Application, pages *tview.Pages, connect func(connection *models.Connection), canStoreConnection bool, getSavedConnections func() ([]string, error), loadSavedConnection func(string) (string, error)) *FormWidget {
 	modal, form, dropDown := createConnectionForm(
 		func() {
-			pages.RemovePage("connection")
+			pages.RemovePage(connectionFormWidget)
 		},
 		canStoreConnection)
-	widget := createEventWidget(modal, "connection", tcell.KeyCtrlC, app, pages)
+	widget := createEventWidget(modal, connectionFormWidget, tcell.KeyCtrlC, app, pages)
 	formWidget := FormWidget{modal, form, dropDown, widget, getSavedConnections, loadSavedConnection}
 
 	formWidget.setButtonSelectedFunc(connect)
@@ -83,7 +85,7 @@ func createConnectionForm(cancel func(),
 	}
 	connectionForm.AddButton("Connect", nil).
 		AddButton("Cancel", cancel)
-	connectionForm.SetBorder(true).SetTitle("Mongo DB Connection")
+	connectionForm.SetBorder(true).SetTitle("Mongo DB connection")
 
 	connectionDropDown := tview.NewDropDown().
 		SetLabel("Load saved connection: ")
@@ -113,6 +115,7 @@ func (f *FormWidget) setButtonSelectedFunc(connect func(connection *models.Conne
 	f.GetButton(0).SetSelectedFunc(func() {
 		connection := f.getData()
 		connect(&connection)
+		f.Pages.RemovePage(connectionFormWidget)
 	})
 }
 

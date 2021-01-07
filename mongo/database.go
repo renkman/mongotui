@@ -32,6 +32,8 @@ var currentDatabase *mongo.Database
 
 // UseDatabase sets the current database specified by the passed name of the MongoDB instance
 // specified by the passed connectionURI.
+// Since the MongoDB use command is used, the database will be created if it does not
+// exist.
 func UseDatabase(connectionURI string, name string) error {
 	client, err := getClient(connectionURI)
 	if err != nil {

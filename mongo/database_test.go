@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"testing"
 
+	//"github.com/google/uuid"
 	"github.com/renkman/mongotui/models"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,6 +47,28 @@ func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
+}
+
+func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
+	const connectionURI string = "mongodb://localhost"
+
+	ctx := context.Background()
+	connection := &models.Connection{Host: "localhost"}
+
+	Connect(ctx, connection)
+	assert.Equal(t, connectionURI, connection.URI)
+
+	err := UseDatabase(connectionURI, "foobar")
+	assert.Nil(t, err)
+
+	command := []byte("{\"create\": \"foo\"}")
+	result, err := Execute(ctx, command)
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
+
+	databases, err := GetDatabases(ctx, connectionURI)
+	assert.Nil(t, err)
+	assert.Contains(t, databases, "foobar")
 }
 
 func writeValue(value interface{}, level int) {

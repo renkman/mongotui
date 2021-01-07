@@ -43,7 +43,6 @@ type MessageModalWidget struct {
 	*Widget
 	MessageType MessageType
 	Message     string
-	Name        string
 }
 
 type unknownMessageTypeError struct {
@@ -71,7 +70,7 @@ func CreateMessageModalWidget(app *tview.Application, pages *tview.Pages, messag
 	pages.AddPage(name, modal, true, true)
 	app.SetFocus(modal)
 
-	return &MessageModalWidget{modal, widget, messageType, message, name}, nil
+	return &MessageModalWidget{modal, widget, messageType, message}, nil
 }
 
 func createMessageModal(messageType MessageType, message string, ok func()) *tview.Modal {
