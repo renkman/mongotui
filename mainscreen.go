@@ -57,19 +57,18 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	commandsView := tview.NewTextView().
 		SetDynamicColors(true).
-		SetRegions(true).
-		SetWrap(true).
-		SetTextAlign(tview.AlignCenter)
+		SetRegions(true)
 
 	commandsView.SetBorder(true).
 		SetTitle("Commands")
 
-	fmt.Fprint(commandsView, "\n[white]Ctrl - Q[darkcyan]uit\t"+
-		"[white]Ctrl - C[darkcyan]onnect to database\t"+
-		"[white]Ctrl - E[darkcyan]nter command\t"+
-		"[white]Ctrl - D[darkcyan]atabase tree\t"+
-		"[white]Ctrl - R[darkcyan]esult view\t"+
-		"[white]Ctrl - T[darkcyan]erminate selected connection")
+	for i, command := range settings.GetCommands() {
+		seperator := ""
+		if (i+1)%5 == 0 {
+			seperator = "\n"
+		}
+		fmt.Fprintf(commandsView, "%s%s", command.Description, seperator)
+	}
 
 	resultView.SetBorder(true).SetTitle("Result")
 	editor.SetBorder(true).SetTitle("Editor")
@@ -87,7 +86,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	frame := tview.NewFrame(flex).
 		AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow).
-		AddText("Copyright 2020 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
+		AddText("Copyright 2021 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
 	pages.AddPage("frame", frame, true, true)
 
 	quitModal := ui.CreateQuitModalWidget(app, pages)
@@ -140,13 +139,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 					message := fmt.Sprintf("Use database on %s failed:\n\n%s", connection.Host, err.Error())
 					ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 				}
-
-				// databases, err := mongo.GetDatabases(ctx, connectionURI)
-				// if err != nil {
-				// 	message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
-				// 	ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
-				// }
-				// databaseTree.AddDatabases(key, connectionURI, databases)
+				databaseTree.AddDatabase(name)
 			}).SetFocus(app)
 
 			return event

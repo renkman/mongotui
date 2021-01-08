@@ -138,6 +138,21 @@ func (d *DatabaseTreeWidget) UpdateCollections() {
 	d.addCollections(currentNode)
 }
 
+// AddDatabase adds a new database to the tree view
+func (d *DatabaseTreeWidget) AddDatabase(name string) {
+	connectionNode := d.getCurrentClientNode()
+	if connectionNode == nil {
+		return
+	}
+	node := tview.NewTreeNode(name).
+		SetReference(nodeLevelDatabase).
+		SetColor(tcell.ColorYellow).
+		SetSelectable(true)
+	connectionNode.AddChild(node)
+
+	parentMapping[node] = connectionNode
+}
+
 func createDatabaseTree() *tview.TreeView {
 	tree := tview.NewTreeView()
 	tree.SetBorder(true).SetTitle("Databases")
