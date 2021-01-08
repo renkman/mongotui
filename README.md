@@ -32,13 +32,17 @@ You can run mongotui with the -c argument specifying a MongoDB connection URI to
 mongotui -c mongodb://localhost
 ```
 
-Press `<Ctrl>`-`<c>` to connect to a MongoDB instance, you can enter the connection parameters individually or the connection URI as well. Notice that the connection URI always wins, if the individual fields and the connection URI are filled.
+Press `<Ctrl>`-`<c>` to connect to a MongoDB instance, you can enter the connection parameters individually or the connection URI as well. Note that the connection URI always wins, if the individual fields and the connection URI are filled.
+
+If you just send an empty form, the mongoTUI tries to connect to localhost by default.
 
 The open database connections, accessed by `<Ctrl>`-`<d>`, their databases and collections are displayed as a tree view in the left application panel. You can navigate through the nodes with the arrow keys or left-click on them.
 
 The command editor is accessible by `<Ctrl>`-`<e>`. The commands are fired on the database which are selected in the tree view by pressing `<Enter>` or `<Return>` in the command editor.
 
 The command result is shown in the result panel as a tree view. You can access it with `<Ctrl>`-`<r>` and navigate through the nodes with the arrow keys.
+
+`<Ctrl>`-`<u>` opens the use database dialog which prompts for the database name. If the database does not exist, it is created as knwon from the MongoDB `use <db>` command.
 
 `<Ctrl>`-`<t>` disconnects (terminates) the selected connection.
 
