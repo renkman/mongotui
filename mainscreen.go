@@ -63,11 +63,11 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		SetTitle("Commands")
 
 	for i, command := range settings.GetCommands() {
-		seperator := "\t"
+		separator := "\t"
 		if (i+1)%5 == 0 {
-			seperator = "\n"
+			separator = "\n"
 		}
-		fmt.Fprintf(commandsView, "%s%s", command.Description, seperator)
+		fmt.Fprintf(commandsView, "%s%s", command.Description, separator)
 	}
 
 	resultView.SetBorder(true).SetTitle("Result")
