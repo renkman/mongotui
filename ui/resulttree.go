@@ -71,6 +71,13 @@ func createResultTree() *tview.TreeView {
 
 func addNode(node *tview.TreeNode, value interface{}) {
 	switch value.(type) {
+	case primitive.A:
+		resultMap := value.(primitive.A)
+		for i, v := range resultMap {
+			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
+			node.AddChild(child)
+			addNode(child, v)
+		}
 	case primitive.M:
 		resultMap := value.(primitive.M)
 		for k, v := range resultMap {

@@ -153,6 +153,24 @@ func (d *DatabaseTreeWidget) AddDatabase(name string) {
 	parentMapping[node] = connectionNode
 }
 
+// RemoveSelectedDatabase removes the database node from the tree view.
+func (d *DatabaseTreeWidget) RemoveSelectedDatabase() {
+	currentNode := d.GetCurrentNode()
+	if currentNode.GetReference().(string) != nodeLevelDatabase {
+		return
+	}
+
+	connectionNode := parentMapping[currentNode]
+	databaseNodes := connectionNode.GetChildren()
+	connectionNode.ClearChildren()
+	for _, node := range databaseNodes {
+		if node != currentNode {
+			connectionNode.AddChild(node)
+		}
+	}
+	delete(parentMapping, currentNode)
+}
+
 func createDatabaseTree() *tview.TreeView {
 	tree := tview.NewTreeView()
 	tree.SetBorder(true).SetTitle("Databases")

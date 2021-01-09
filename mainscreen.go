@@ -63,7 +63,7 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 		SetTitle("Commands")
 
 	for i, command := range settings.GetCommands() {
-		seperator := ""
+		seperator := "\t"
 		if (i+1)%5 == 0 {
 			seperator = "\n"
 		}
@@ -115,11 +115,32 @@ func createMainSreen(ctx context.Context, app *tview.Application, pages *tview.P
 
 	connectionForm := ui.CreateConnectionFormWidget(app, pages, connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 
+	dropDatabaseForm := ui.CreateDropDatabaseModalWidget(app, pages,
+		func() string {
+			name, err := mongo.GetCurrentDatabaseName()
+			if err == nil {
+				return name
+			}
+			message := fmt.Sprintf("Getting current database failed:\n\n%s", err.Error())
+			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+			return ""
+		},
+		func() {
+			err := mongo.Drop(ctx)
+			if err != nil {
+				message := fmt.Sprintf("Deleting current database failed:\n\n%s", err.Error())
+				ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+				return
+			}
+			databaseTree.RemoveSelectedDatabase()
+		})
+
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		quitModal.HandleEvent(event)
 		connectionForm.HandleEvent(event)
 		databaseTree.HandleEvent(event)
 		resultView.HandleEvent(event)
+		dropDatabaseForm.HandleEvent(event)
 
 		if event.Key() == tcell.KeyCtrlE {
 			app.SetFocus(editor)

@@ -40,9 +40,19 @@ The open database connections, accessed by `<Ctrl>`-`<d>`, their databases and c
 
 The command editor is accessible by `<Ctrl>`-`<e>`. The commands are fired on the database which are selected in the tree view by pressing `<Enter>` or `<Return>` in the command editor.
 
+For a reference of the usable commands see the [official MongoDB database commands documentation](https://docs.mongodb.com/manual/reference/command/).
+
+Note that the command has to be valid json, which means that property names and strings must be quoted, for example:
+
+```
+{"create":"foobar"}
+```
+
 The command result is shown in the result panel as a tree view. You can access it with `<Ctrl>`-`<r>` and navigate through the nodes with the arrow keys.
 
 `<Ctrl>`-`<u>` opens the use database dialog which prompts for the database name. If the database does not exist, it is created as knwon from the MongoDB `use <db>` command.
+
+`<Ctrl>`-`<x>` opens the drop database dialog and drops the database selected in the database tree view.
 
 `<Ctrl>`-`<t>` disconnects (terminates) the selected connection.
 

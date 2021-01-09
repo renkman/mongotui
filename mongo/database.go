@@ -85,3 +85,25 @@ func Execute(ctx context.Context, command []byte) (interface{}, error) {
 	}
 	return result, nil
 }
+
+// Drop drops the current database.
+func Drop(ctx context.Context) error {
+	if currentDatabase == nil {
+		return fmt.Errorf("No database selected")
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	err := currentDatabase.Drop(ctx)
+	return err
+}
+
+// GetCurrentDatabaseName returns the current database name.
+func GetCurrentDatabaseName() (string, error) {
+	if currentDatabase == nil {
+		return "", fmt.Errorf("No database selected")
+	}
+
+	return currentDatabase.Name(), nil
+}

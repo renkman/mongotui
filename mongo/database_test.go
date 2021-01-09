@@ -29,15 +29,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const connectionURI string = "mongodb://localhost"
+
 func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 	ctx := context.Background()
-	connection := &models.Connection{Host: "localhost"}
-	command := []byte("{\"listCommands\": 1}")
+	connection := &models.Connection{URI: connectionURI}
+	command := []byte(`{"listCommands": 1}`)
 
 	Connect(ctx, connection)
-	assert.Equal(t, "mongodb://localhost", connection.URI)
+	assert.Equal(t, connectionURI, connection.URI)
 
-	err := UseDatabase("mongodb://localhost", "admin")
+	err := UseDatabase(connectionURI, "admin")
 	assert.Nil(t, err)
 
 	result, err := Execute(ctx, command)
@@ -50,10 +52,8 @@ func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 }
 
 func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
-	const connectionURI string = "mongodb://localhost"
-
 	ctx := context.Background()
-	connection := &models.Connection{Host: "localhost"}
+	connection := &models.Connection{URI: connectionURI}
 
 	Connect(ctx, connection)
 	assert.Equal(t, connectionURI, connection.URI)
@@ -61,7 +61,7 @@ func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
 	err := UseDatabase(connectionURI, "foobar")
 	assert.Nil(t, err)
 
-	command := []byte("{\"create\": \"foo\"}")
+	command := []byte(`{"create": "foo"}`)
 	result, err := Execute(ctx, command)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
@@ -71,8 +71,41 @@ func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
 	assert.Contains(t, databases, "foobar")
 }
 
+func TestExecute_WithInsertAndFind_ReturnsCursor(t *testing.T) {
+	ctx := context.Background()
+	connection := &models.Connection{URI: connectionURI}
+	Connect(ctx, connection)
+	UseDatabase(connectionURI, "commodore")
+
+	command := []byte("{\"create\": \"systems\"}")
+	Execute(ctx, command)
+
+	command = []byte(`{"insert": "systems", "documents": [
+			{"_id":1, "name":"Amiga 500", "release": 1987},
+			{"_id":2, "name":"Amiga 1000", "release": 1985},
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
+		]}`)
+	Execute(ctx, command)
+
+	command = []byte(`{"find":"systems"}`)
+	result, err := Execute(ctx, command)
+	assert.Nil(t, err)
+
+	writeValue(result, 0)
+}
+
 func writeValue(value interface{}, level int) {
 	switch value.(type) {
+	case primitive.A:
+		resultArray := value.(primitive.A)
+		for k, v := range resultArray {
+			fmt.Printf("Level: %v\t%v\t", level, reflect.TypeOf(v))
+			for i := 0; i < level; i++ {
+				fmt.Printf("\t")
+			}
+			fmt.Printf("%v\n", k)
+			writeValueOrdered(v, level+1)
+		}
 	case primitive.D:
 		resultMap := value.(primitive.D).Map()
 		for k, v := range resultMap {
@@ -94,6 +127,16 @@ func writeValue(value interface{}, level int) {
 
 func writeValueOrdered(value interface{}, level int) {
 	switch value.(type) {
+	case primitive.A:
+		resultArray := value.(primitive.A)
+		for k, v := range resultArray {
+			fmt.Printf("Level: %v\t%v\t", level, reflect.TypeOf(v))
+			for i := 0; i < level; i++ {
+				fmt.Printf("\t")
+			}
+			fmt.Printf("%v\n", k)
+			writeValueOrdered(v, level+1)
+		}
 	case primitive.D:
 		resultMap := value.(primitive.D)
 		for k, v := range resultMap {

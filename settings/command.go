@@ -19,22 +19,23 @@ package settings
 
 import "github.com/gdamore/tcell"
 
-// Command defines the command shortcuts and the command description
+// Command defines the command shortcuts and the command description.
 type Command struct {
 	Key         tcell.Key
 	Description string
 }
 
 var commands []Command = []Command{
-	{tcell.KeyCtrlC, "[white]Ctrl - C[darkcyan]onnect to database\t"},
-	{tcell.KeyCtrlD, "[white]Ctrl - D[darkcyan]atabase tree\t"},
-	{tcell.KeyCtrlE, "[white]Ctrl - E[darkcyan]nter command\t"},
-	{tcell.KeyCtrlR, "[white]Ctrl - R[darkcyan]esult view\t"},
-	{tcell.KeyCtrlT, "[white]Ctrl - T[darkcyan]erminate selected connection\t"},
-	{tcell.KeyCtrlU, "[white]Ctrl - U[darkcyan]se database\t"},
+	{tcell.KeyCtrlC, "[white]Ctrl - C[darkcyan]onnect to database"},
+	{tcell.KeyCtrlD, "[white]Ctrl - D[darkcyan]atabase tree"},
+	{tcell.KeyCtrlE, "[white]Ctrl - E[darkcyan]nter command"},
+	{tcell.KeyCtrlR, "[white]Ctrl - R[darkcyan]esult view"},
+	{tcell.KeyCtrlT, "[white]Ctrl - T[darkcyan]erminate selected connection"},
+	{tcell.KeyCtrlU, "[white]Ctrl - U[darkcyan]se database"},
+	{tcell.KeyCtrlX, "[white]Ctrl - X [darkcyan]Drop database"},
 	{tcell.KeyCtrlQ, "[white]Ctrl - Q[darkcyan]uit"}}
 
-// GetCommands returns the defined application commands
+// GetCommands returns the defined application commands.
 func GetCommands() []Command {
 	return commands
 }
