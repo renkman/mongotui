@@ -31,8 +31,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
-
 type mongoClient interface {
 	Connect(ctx context.Context, connection *models.Connection) error
 	GetDatabases(ctx context.Context) (string, error)
@@ -40,7 +38,10 @@ type mongoClient interface {
 
 const defaultHost string = "localhost"
 
-var clients map[string]*mongo.Client = make(map[string]*mongo.Client)
+var (
+	clients               map[string]*mongo.Client = make(map[string]*mongo.Client)
+	connectionNamePattern *regexp.Regexp           = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
+)
 
 // Connect establishes a connection to the MongoDB instance specified by
 // the passed models.Conenction and stores the resulting client in the internal
