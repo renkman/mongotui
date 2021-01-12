@@ -36,7 +36,6 @@ func handleEditorEvent(key tcell.Key) {
 	databaseTree.UpdateCollections()
 }
 
-
 func handleUseDatabaseEvent(event *tcell.EventKey) *tcell.EventKey {
 	connectionURI := databaseTree.GetSelectedConnection()
 	if connectionURI == "" {

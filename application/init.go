@@ -102,6 +102,7 @@ func init() {
 	app.SetFocus(editor)
 }
 
+// GetApplication returns the initialized *tview.Application.
 func GetApplication() *tview.Application {
 	return app
 }
