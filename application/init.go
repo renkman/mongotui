@@ -18,17 +18,22 @@
 package application
 
 import (
+	"context"
+	"fmt"
 	"github.com/gdamore/tcell"
+	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"
 	"github.com/renkman/mongotui/ui"
 	"github.com/rivo/tview"
 )
 
 var (
-	app            *tview.Application
-	pages          *tview.Pages
-	connectionForm *ui.FormWidget
-	databaseTree   *ui.DatabaseTreeWidget
+	app          *tview.Application
+	pages        *tview.Pages
+	databaseTree *ui.DatabaseTreeWidget
+	resultView   *ui.ResultTreeWidget
+	editor       *tview.InputField
+	commandsView *tview.TextView
 )
 
 func init() {
@@ -37,17 +42,94 @@ func init() {
 
 	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree)
 
-	connectionForm := ui.CreateConnectionFormWidget(app, pages, connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
+	resultView = ui.CreateResultTreeWidget(app, pages)
+	resultView.SetBorder(true).SetTitle("Result")
+
+	editor = tview.NewInputField().
+		SetLabel("Command: ").
+		SetFieldWidth(200).
+		SetDoneFunc(handleEditorEvent)
+	editor.SetBorder(true).
+		SetTitle("Editor")
+
+	commandsView = tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true)
+	commandsView.SetBorder(true).
+		SetTitle("Commands")
+	setupCommandsView()
+
+	quitModal := ui.CreateQuitModalWidget(app, pages)
+	connectionForm := ui.CreateConnectionFormWidget(app, pages, Connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
+	dropDatabaseForm := ui.CreateDropDatabaseModalWidget(app, pages, getCurrentDatabase, dropDatabase)
+
+	buildMainScreen()
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		quitModal.HandleEvent(event)
 		connectionForm.HandleEvent(event)
 		databaseTree.HandleEvent(event)
+		resultView.HandleEvent(event)
+		dropDatabaseForm.HandleEvent(event)
+
+		if event.Key() == tcell.KeyCtrlE {
+			app.SetFocus(editor)
+			return event
+		}
+
+		if event.Key() == tcell.KeyCtrlU {
+			return handleUseDatabaseEvent(event)
+		}
+
+		err := databaseTree.HandleDiconnectionEvent(event, func(key string) error {
+			ctx := context.Background()
+			return mongo.Disconnect(ctx, key)
+		})
+		if err != nil {
+			message := fmt.Sprintf("Attempt to disconnect failed:\n\n%s", err.Error())
+			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+			return event
+		}
+
+		if event.Key() == tcell.KeyCtrlC {
+			return tcell.NewEventKey(tcell.KeyNUL, ' ', tcell.ModNone)
+		}
+
 		return event
 	})
 
 	app.SetRoot(pages, true).EnableMouse(true)
+	app.SetFocus(editor)
 }
 
-func getApplication() *tview.Application {
+func GetApplication() *tview.Application {
 	return app
+}
+
+func buildMainScreen() {
+	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(commandsView, 5, 1, false).
+		AddItem(tview.NewFlex().
+			AddItem(databaseTree, 40, 0, false).
+			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+				AddItem(editor, 3, 1, false).
+				AddItem(resultView, 0, 1, false).
+				AddItem(tview.NewBox().SetBorder(true).SetTitle("Statistics"), 10, 1, false),
+				0, 1, false),
+			0, 1, false)
+
+	frame := tview.NewFrame(flex).
+		AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow).
+		AddText("Copyright 2021 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
+	pages.AddPage("frame", frame, true, true)
+}
+
+func setupCommandsView() {
+	for i, command := range settings.GetCommands() {
+		separator := "\t"
+		if (i+1)%5 == 0 {
+			separator = "\n"
+		}
+		fmt.Fprintf(commandsView, "%s%s", command.Description, separator)
+	}
 }

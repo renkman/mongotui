@@ -20,7 +20,6 @@ package application
 import (
 	"context"
 	"fmt"
-
 	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"
@@ -29,8 +28,7 @@ import (
 
 // Connect connects to the host with the passed *models.Connection and adds it to the
 // database tree view if it was successful.
-
-func connect(connection *models.Connection) {
+func Connect(connection *models.Connection) {
 	mongo.BuildConnectionURI(connection)
 	if settings.CanStoreConnection && connection.SaveConnection {
 		settings.StoreConnection(connection.Host, connection.URI)
@@ -63,4 +61,25 @@ func updateDatabaseTree(connectionUri string, name string) []string {
 		return collections
 	}
 	return collections
+}
+
+func getCurrentDatabase() string {
+	name, err := mongo.GetCurrentDatabaseName()
+	if err == nil {
+		return name
+	}
+	message := fmt.Sprintf("Getting current database failed:\n\n%s", err.Error())
+	ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+	return ""
+}
+
+func dropDatabase() {
+	ctx := context.Background()
+	err := mongo.Drop(ctx)
+	if err != nil {
+		message := fmt.Sprintf("Deleting current database failed:\n\n%s", err.Error())
+		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+		return
+	}
+	databaseTree.RemoveSelectedDatabase()
 }
