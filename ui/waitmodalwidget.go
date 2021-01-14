@@ -33,10 +33,10 @@ type WaitModalWidget struct {
 
 const (
 	waitmodal string = "waitmodal"
-	speed            = 200 * time.Millisecond
+	speed            = 100 * time.Millisecond
 )
 
-var highlighted = []string  {"blue", "blue", "blue", "blue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
+var highlighted = []string  {"blue", "blue", "lightblue", "lightblue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
 var rotateOrder = []int{1, 2, 3, 7, 11, 10, 9, 8, 4, 0}
 var spinnerRunes = []rune{'╭', '─', '─', '╮', '│', ' ', ' ', '│', '╰', '─', '─', '╯'}
 
@@ -63,8 +63,8 @@ func createWaitModalWidget() (*tview.TextView, *tview.Flex) {
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(spinnerTextView, 5, 1, false).
-			AddItem(nil, 0, 1, false), 6, 1, false).
+			AddItem(spinnerTextView, 3, 1, false).
+			AddItem(nil, 0, 1, false), 4, 1, false).
 		AddItem(nil, 0, 1, false)
 	return spinnerTextView, modal
 }
@@ -81,16 +81,32 @@ func (w *WaitModalWidget) rotateSpinner() {
 }
 
 func buildSpinner(index int) string {
-	position := rotateOrder[index]
 	var builder strings.Builder
 	for i, r := range spinnerRunes {
 		ln := ""
 		if (i+1)%4 == 0 {
 			ln = "\n"
 		}
-		offset := i - position
-		color := highlighted[len(highlighted) - 1 - offset]
+		currentPosition := getPosition(i)
+		if currentPosition == -1 {
+			fmt.Fprintf(&builder, "%c%s", r, ln)
+			continue
+		}
+		highlightedIndex := len(highlighted) - 1 - index + currentPosition
+		if highlightedIndex >= len(highlighted) {
+			highlightedIndex = highlightedIndex - len(highlighted)
+		}
+		color := highlighted[highlightedIndex]
 		fmt.Fprintf(&builder, "[%s]%c%s", color, r, ln)
 	}
 	return builder.String()
+}
+
+func getPosition(index int) int {
+	for pos, i := range rotateOrder {
+		if i == index {
+			return pos
+		}
+	}
+	return -1
 }
