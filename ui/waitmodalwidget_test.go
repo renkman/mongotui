@@ -26,5 +26,7 @@ import (
 func Test_buildSpinner_WithValidIndex_ReturnsSpinner(t *testing.T) {
 	result := buildSpinner(0)
 
-	assert.Equal(t, "[white]╭[white]─[blue]─[blue]╮\n[lightgrey]│  [lightblue]│\n[lightgrey]╰[darkgrey]─[darkgrey]─[lightblue]╯\n", result)
+	assert.Equal(t, "[white]╭[white]─[blue]─[blue]╮\n"+
+		"[lightgrey]│  [lightblue]│\n"+
+		"[lightgrey]╰[darkgrey]─[darkgrey]─[lightblue]╯\n", result)
 }
