@@ -18,6 +18,7 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -32,50 +33,89 @@ type WaitModalWidget struct {
 }
 
 const (
-	waitmodal string = "waitmodal"
-	speed            = 100 * time.Millisecond
+	waitModal = "waitmodal"
+	speed     = 100 * time.Millisecond
 )
 
-var highlighted = []string  {"blue", "blue", "lightblue", "lightblue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
+var highlighted = []string{"blue", "blue", "lightblue", "lightblue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
 var rotateOrder = []int{1, 2, 3, 7, 11, 10, 9, 8, 4, 0}
 var spinnerRunes = []rune{'╭', '─', '─', '╮', '│', ' ', ' ', '│', '╰', '─', '─', '╯'}
 
-func CreateWaitModalWidget(app *tview.Application, pages *tview.Pages) *WaitModalWidget {
-	spinner, modal := createWaitModalWidget()
-	widget := createWidget(modal, waitmodal, app, pages)
+func CreateWaitModalWidget(app *tview.Application, pages *tview.Pages, message string, ctx context.Context) *WaitModalWidget {
+	ctx, cancel := context.WithCancel(ctx)
 
-	pages.AddPage(name, modal, true, true)
+	spinner, modal := createWaitModalWidget(message, cancel)
+	widget := createWidget(modal, waitModal, app, pages)
+
+	pages.AddPage(waitModal, modal, true, true)
 	app.SetFocus(modal)
 	waitModalWidget := WaitModalWidget{modal, spinner, widget}
-	go waitModalWidget.rotateSpinner()
+	go waitModalWidget.rotateSpinner(ctx)
 	return &waitModalWidget
 }
 
-func createWaitModalWidget() (*tview.TextView, *tview.Flex) {
+func createWaitModalWidget(message string, cancel func()) (*tview.TextView, *tview.Flex) {
 	spinner := buildSpinner(0)
 	spinnerTextView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetText(spinner)
-
 	spinnerTextView.SetBackgroundColor(tcell.ColorBlue)
+
+	messageTextView := tview.NewTextView().SetText(message).SetWrap(true).SetTextAlign(tview.AlignCenter)
+	messageTextView.SetBackgroundColor(tcell.ColorBlue)
+
+	cancelButton := tview.NewButton("Cancel").SetSelectedFunc(cancel)
+	cancelButton.SetBackgroundColor(tcell.ColorBlack)
+
+	innerModal := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(nil, 0, 1, false).
+		AddItem(tview.NewFlex().
+			AddItem(nil, 0, 1, false).
+			AddItem(messageTextView, 20, 1, false).
+			AddItem(nil, 0, 1, false),
+			5, 1, false).
+		AddItem(tview.NewFlex().
+			AddItem(nil, 0, 1, false).
+			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+				AddItem(nil, 0, 1, false).
+				AddItem(spinnerTextView, 3, 1, false).
+				AddItem(nil, 0, 1, false),
+				4, 1, false).
+			AddItem(nil, 0, 1, false),
+			4, 1, false).
+		AddItem(tview.NewFlex().
+			AddItem(nil, 0, 1, false).
+			AddItem(cancelButton, 10, 1, false).
+			AddItem(nil, 0, 1, false),
+			1, 1, false).
+		AddItem(nil, 0, 1, false)
+	innerModal.SetBackgroundColor(tcell.ColorBlue)
 
 	modal := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(spinnerTextView, 3, 1, false).
-			AddItem(nil, 0, 1, false), 4, 1, false).
+			AddItem(innerModal, 15, 1, false).
+			AddItem(nil, 0, 1, false),
+			40, 1, false).
 		AddItem(nil, 0, 1, false)
 	return spinnerTextView, modal
 }
 
-func (w *WaitModalWidget) rotateSpinner() {
-	for i := 0; i < 10; i++ {
-		for i, _ := range rotateOrder {
-			time.Sleep(speed)
-			spinner := buildSpinner(i)
-			w.SetText(spinner)
+func (w *WaitModalWidget) rotateSpinner(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			w.Pages.RemovePage(waitModal)
 			w.App.Draw()
+			return
+		default:
+			for i := range rotateOrder {
+				time.Sleep(speed)
+				spinner := buildSpinner(i)
+				w.SetText(spinner)
+				w.App.Draw()
+			}
 		}
 	}
 }

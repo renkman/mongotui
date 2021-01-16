@@ -36,6 +36,7 @@ func Connect(connection *models.Connection) {
 
 	ctx := context.Background()
 	err := mongo.Connect(ctx, connection)
+	//ui.CreateWaitModalWidget(app, pages, "Spinner test", ctx)
 	if err != nil {
 		message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)

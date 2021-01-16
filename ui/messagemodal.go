@@ -23,15 +23,14 @@ import (
 	"github.com/rivo/tview"
 )
 
-const name = "messageModal"
-
 // MessageType indicates the type of a message.
 type MessageType int
 
 // Currently supported message types.
 const (
-	TypeInfo  MessageType = 0
-	TypeError MessageType = 1
+	messageModal             = "messageModal"
+	TypeInfo     MessageType = 0
+	TypeError    MessageType = 1
 )
 
 var messageTypes = [2]string{"Info", "Error"}
@@ -63,11 +62,11 @@ func CreateMessageModalWidget(app *tview.Application, pages *tview.Pages, messag
 		messageType,
 		message,
 		func() {
-			pages.RemovePage(name)
+			pages.RemovePage(messageModal)
 		})
-	widget := createWidget(modal, name, app, pages)
+	widget := createWidget(modal, messageModal, app, pages)
 
-	pages.AddPage(name, modal, true, true)
+	pages.AddPage(messageModal, modal, true, true)
 	app.SetFocus(modal)
 
 	return &MessageModalWidget{modal, widget, messageType, message}, nil

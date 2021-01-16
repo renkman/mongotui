@@ -49,7 +49,7 @@ var (
 func Connect(ctx context.Context, connection *models.Connection) error {
 	BuildConnectionURI(connection)
 
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection.URI).SetConnectTimeout(10*time.Second))

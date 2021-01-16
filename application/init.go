@@ -98,9 +98,7 @@ func init() {
 		return event
 	})
 
-	ui.CreateWaitModalWidget(app, pages)
 	app.SetRoot(pages, true).EnableMouse(true)
-	//app.SetFocus(editor)
 }
 
 // GetApplication returns the initialized *tview.Application.
