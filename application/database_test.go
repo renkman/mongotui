@@ -15,19 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with MongoTUI.  If not, see <http://www.gnu.org/licenses/>.
 
-// package application
+package application
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"fmt"
+	"testing"
+	"time"
 
-// 	"github.com/renkman/mongotui/models"
-// 	"github.com/renkman/mongotui/mongo"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/renkman/mongotui/models"
+	"github.com/renkman/mongotui/mongo"
+	"github.com/stretchr/testify/assert"
+)
 
-// func TestConnect_TriesConnectAndCancelsAfter10Seconds(t *testing.T) {
+func TestConnect_TriesConnectAndCancelsAfter10Seconds(t *testing.T) {
 
-// }
+}

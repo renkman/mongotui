@@ -105,16 +105,16 @@ func createWaitModalWidget(message string, cancel func()) (*tview.TextView, *tvi
 
 func (w *WaitModalWidget) rotateSpinner(ctx context.Context) {
 	for {
-		select {
-		case <-ctx.Done():
-			w.Pages.RemovePage(waitModal)
-			w.App.Draw()
-			return
-		default:
-			for i := range rotateOrder {
-				time.Sleep(speed)
-				spinner := buildSpinner(i)
-				w.SetText(spinner)
+		for i := range rotateOrder {
+			time.Sleep(speed)
+			spinner := buildSpinner(i)
+			w.SetText(spinner)
+			select {
+			case <-ctx.Done():
+				w.Pages.RemovePage(waitModal)
+				w.App.Draw()
+				return
+			default:
 				w.App.Draw()
 			}
 		}
