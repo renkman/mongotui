@@ -19,7 +19,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -28,6 +27,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConnect_TriesConnectAndCancelsAfter10Seconds(t *testing.T) {
+func TestConnect_TriesConnectAndCancelsAfter30Seconds(t *testing.T) {
+	draw = func() {}
 
+	start := time.Now()
+	connection := &models.Connection{Host: "foo"}
+	Connect(connection)
+	stop := time.Now()
+
+	result := stop.Sub(start)
+
+	assert.LessOrEqual(t, 30.0, result.Seconds())
+}
+
+func TestConnect_ConnectsToDatabaseAndSetsCurrentDatabase(t *testing.T) {
+	const uri string = "mongodb://localhost"
+	connection := &models.Connection{URI: uri}
+	Connect(connection)
+
+	result, err := mongo.GetDatabases(context.TODO(), uri)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, result)
 }

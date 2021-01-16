@@ -27,6 +27,8 @@ import (
 	"github.com/rivo/tview"
 )
 
+// WaitModalWidget is a modal with a text message, a rotating spinner and a cancel
+// button to interrupt the invoking action and close the modal.
 type WaitModalWidget struct {
 	*tview.Flex
 	*tview.TextView
@@ -38,11 +40,14 @@ const (
 	speed     = 100 * time.Millisecond
 )
 
-var highlighted = []string{"blue", "blue", "lightblue", "lightblue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
-var rotateOrder = []int{1, 2, 3, 7, 11, 10, 9, 8, 4, 0}
-var spinnerRunes = []rune{'╭', '─', '─', '╮', '│', ' ', ' ', '│', '╰', '─', '─', '╯'}
+var (
+	highlighted  = []string{"blue", "blue", "lightblue", "lightblue", "darkgrey", "darkgrey", "lightgrey", "lightgrey", "white", "white"}
+	rotateOrder  = []int{1, 2, 3, 7, 11, 10, 9, 8, 4, 0}
+	spinnerRunes = []rune{'╭', '─', '─', '╮', '│', ' ', ' ', '│', '╰', '─', '─', '╯'}
+)
 
-func CreateWaitModalWidget(app *tview.Application, pages *tview.Pages, message string, ctx context.Context, cancel func()) *WaitModalWidget {
+// CreateWaitModalWidget creates a new WaitModalWidget.
+func CreateWaitModalWidget(ctx context.Context, app *tview.Application, pages *tview.Pages, message string, cancel func()) *WaitModalWidget {
 	spinner, modal, cancelButton := createWaitModalWidget(message, cancel)
 	widget := createWidget(modal, waitModal, app, pages)
 

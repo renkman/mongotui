@@ -40,13 +40,13 @@ func Connect(connection *models.Connection) {
 
 	ch := mongo.Connect(ctx, connection)
 	info := fmt.Sprintf("Connecting to %s...", connection.Host)
-	ui.CreateWaitModalWidget(app, pages, info, ctx, cancel)
+	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
 
 	err := <-ch
 	if err != nil {
 		message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
-		app.Draw()
+		draw()
 		return
 	}
 
@@ -54,15 +54,15 @@ func Connect(connection *models.Connection) {
 	if err != nil {
 		message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
-		app.Draw()
+		draw()
 		return
 	}
 	databaseTree.AddDatabases(connection.Host, connection.URI, databases)
 }
 
-func updateDatabaseTree(connectionUri string, name string) []string {
+func updateDatabaseTree(connectionURI string, name string) []string {
 	ctx := context.Background()
-	mongo.UseDatabase(connectionUri, name)
+	mongo.UseDatabase(connectionURI, name)
 	collections, err := mongo.GetCollections(ctx)
 	if err != nil {
 		message := fmt.Sprintf("Getting collections of database %s failed:\n\n%s", name, err.Error())

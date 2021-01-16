@@ -35,11 +35,13 @@ var (
 	resultView   *ui.ResultTreeWidget
 	editor       *tview.InputField
 	commandsView *tview.TextView
+	draw         func()
 )
 
 func init() {
 	app = tview.NewApplication()
 	pages = tview.NewPages()
+	draw = func() { app.Draw() }
 
 	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree)
 
