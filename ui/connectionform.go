@@ -114,8 +114,8 @@ func createConnectionForm(cancel func(),
 func (f *FormWidget) setButtonSelectedFunc(connect func(connection *models.Connection)) {
 	f.GetButton(0).SetSelectedFunc(func() {
 		connection := f.getData()
-		connect(&connection)
 		f.Pages.RemovePage(connectionFormWidget)
+		go connect(&connection)
 	})
 }
 

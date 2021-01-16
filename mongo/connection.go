@@ -46,24 +46,27 @@ var (
 // Connect establishes a connection to the MongoDB instance specified by
 // the passed models.Conenction and stores the resulting client in the internal
 // client map with its URI as key.
-func Connect(ctx context.Context, connection *models.Connection) error {
+func Connect(ctx context.Context, connection *models.Connection) chan error {
 	BuildConnectionURI(connection)
+	ch := make(chan error)
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+	go func() {
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection.URI).SetConnectTimeout(10*time.Second))
+		if err != nil {
+			ch <- err
+			return
+		}
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection.URI).SetConnectTimeout(10*time.Second))
-	if err != nil {
-		return err
-	}
+		err = client.Ping(ctx, nil)
+		if err != nil {
+			ch <- err
+			return
+		}
 
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	clients[connection.URI] = client
-	return nil
+		clients[connection.URI] = client
+		ch <- nil
+	}()
+	return ch
 }
 
 // GetDatabases returns the databases of the MongoDB instance specified by the

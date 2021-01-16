@@ -18,7 +18,10 @@
 package mongo
 
 import (
+	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/renkman/mongotui/models"
 	"github.com/stretchr/testify/assert"
@@ -88,4 +91,40 @@ func Test_BuildConnectionURI_WithURIAndHost_SetsHostToURIhostname(t *testing.T) 
 			assert.Equal(t, connectionHostTest.out, connectionHostTest.in.Host)
 		})
 	}
+}
+
+func TestConnect_WithInvalidHost_RunsIntoTimeout(t *testing.T) {
+	expected := 10 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), expected)
+	start := time.Now()
+	fmt.Printf("Start:\t%v\n", start)
+	ch := Connect(ctx, &models.Connection{Host: "foo"})
+	defer cancel()
+	connect := time.Now()
+	fmt.Printf("Wait:\t%v\n", connect)
+	err := <-ch
+	stop := time.Now()
+	fmt.Printf("Stop\t%v\n", stop)
+
+	result := stop.Sub(start)
+
+	assert.NotNil(t, err)
+	assert.LessOrEqual(t, expected.Seconds(), result.Seconds())
+}
+
+func TestConnect_WithInvalidHostAndCancelCall_CancelsBeforeTimeout(t *testing.T) {
+	expected := 2 * time.Second
+	start := time.Now()
+	timer := time.NewTimer(expected)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ch := Connect(ctx, &models.Connection{Host: "foo"})
+
+	<-timer.C
+	cancel()
+	err := <-ch
+	stop := time.Now()
+
+	result := stop.Sub(start)
+	assert.NotNil(t, err)
+	assert.LessOrEqual(t, expected.Seconds(), result.Seconds())
 }

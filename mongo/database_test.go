@@ -36,10 +36,11 @@ func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 	connection := &models.Connection{URI: connectionURI}
 	command := []byte(`{"listCommands": 1}`)
 
-	Connect(ctx, connection)
+	ch := Connect(ctx, connection)
+	err := <-ch
 	assert.Equal(t, connectionURI, connection.URI)
 
-	err := UseDatabase(connectionURI, "admin")
+	err = UseDatabase(connectionURI, "admin")
 	assert.Nil(t, err)
 
 	result, err := Execute(ctx, command)
@@ -55,10 +56,11 @@ func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
 	ctx := context.Background()
 	connection := &models.Connection{URI: connectionURI}
 
-	Connect(ctx, connection)
+	ch := Connect(ctx, connection)
+	err := <-ch
 	assert.Equal(t, connectionURI, connection.URI)
 
-	err := UseDatabase(connectionURI, "foobar")
+	err = UseDatabase(connectionURI, "foobar")
 	assert.Nil(t, err)
 
 	command := []byte(`{"create": "foo"}`)
@@ -74,7 +76,8 @@ func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
 func TestExecute_WithInsertAndFind_ReturnsCursor(t *testing.T) {
 	ctx := context.Background()
 	connection := &models.Connection{URI: connectionURI}
-	Connect(ctx, connection)
+	ch := Connect(ctx, connection)
+	err := <-ch
 	UseDatabase(connectionURI, "commodore")
 
 	command := []byte("{\"create\": \"systems\"}")

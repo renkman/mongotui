@@ -20,6 +20,7 @@ package application
 import (
 	"context"
 	"fmt"
+
 	"github.com/gdamore/tcell"
 	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"

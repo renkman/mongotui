@@ -20,6 +20,7 @@ package application
 import (
 	"context"
 	"fmt"
+
 	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"
@@ -34,12 +35,18 @@ func Connect(connection *models.Connection) {
 		settings.StoreConnection(connection.Host, connection.URI)
 	}
 
-	ctx := context.Background()
-	err := mongo.Connect(ctx, connection)
-	//ui.CreateWaitModalWidget(app, pages, "Spinner test", ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch := mongo.Connect(ctx, connection)
+	info := fmt.Sprintf("Connecting to %s...", connection.Host)
+	ui.CreateWaitModalWidget(app, pages, info, ctx, cancel)
+
+	err := <-ch
 	if err != nil {
 		message := fmt.Sprintf("Connection to %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+		app.Draw()
 		return
 	}
 
@@ -47,6 +54,7 @@ func Connect(connection *models.Connection) {
 	if err != nil {
 		message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+		app.Draw()
 		return
 	}
 	databaseTree.AddDatabases(connection.Host, connection.URI, databases)

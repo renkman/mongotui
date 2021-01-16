@@ -15,14 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with MongoTUI.  If not, see <http://www.gnu.org/licenses/>.
 
-package application
+// package application
 
-import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
+// import (
+// 	"context"
+// 	"fmt"
+// 	"testing"
+// 	"time"
 
-func TestConnect_StartsWaitModalWidgetAndCancelsAfterFailing(t *testing.T) {
-	// TODO: Setup Connect test with mongo.Connect() mock
-	assert.True(t, true)
-}
+// 	"github.com/renkman/mongotui/models"
+// 	"github.com/renkman/mongotui/mongo"
+// 	"github.com/stretchr/testify/assert"
+// )
+
+// func TestConnect_TriesConnectAndCancelsAfter10Seconds(t *testing.T) {
+
+// }
