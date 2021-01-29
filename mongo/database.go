@@ -28,6 +28,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+type db struct {
+	currentDatabase *mongo.Database
+}
+
 var currentDatabase *mongo.Database
 
 // UseDatabase sets the current database specified by the passed name of the MongoDB instance
@@ -35,7 +39,7 @@ var currentDatabase *mongo.Database
 // Since the MongoDB use command is used, the database will be created if it does not
 // exist.
 func UseDatabase(connectionURI string, name string) error {
-	client, err := getClient(connectionURI)
+	client, err := Connection.getClient(connectionURI)
 	if err != nil {
 		return err
 	}

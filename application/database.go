@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/renkman/mongotui/database"
 	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"
@@ -29,7 +30,7 @@ import (
 
 // Connect connects to the host with the passed *models.Connection and adds it to the
 // database tree view if it was successful.
-func Connect(connection *models.Connection) {
+func Connect(connecter database.Connecter, connection *models.Connection) {
 	mongo.BuildConnectionURI(connection)
 	if settings.CanStoreConnection && connection.SaveConnection {
 		settings.StoreConnection(connection.Host, connection.URI)
@@ -38,7 +39,7 @@ func Connect(connection *models.Connection) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ch := mongo.Connect(ctx, connection)
+	ch := connecter.Connect(ctx, connection)
 	info := fmt.Sprintf("Connecting to %s...", connection.Host)
 	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
 
@@ -50,7 +51,7 @@ func Connect(connection *models.Connection) {
 		return
 	}
 
-	databases, err := mongo.GetDatabases(ctx, connection.URI)
+	databases, err := connecter.GetDatabases(ctx, connection.URI)
 	if err != nil {
 		message := fmt.Sprintf("Getting databases of %s failed:\n\n%s", connection.Host, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
@@ -91,4 +92,9 @@ func dropDatabase() {
 		return
 	}
 	databaseTree.RemoveSelectedDatabase()
+}
+
+func disconnect(connecter database.Connecter, key string) error {
+	ctx := context.Background()
+	return connecter.Disconnect(ctx, key)
 }

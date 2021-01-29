@@ -21,9 +21,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/renkman/mongotui/application"
 	"os"
 	"os/signal"
+
+	"github.com/renkman/mongotui/application"
 
 	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
@@ -36,7 +37,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	defer func() {
-		mongo.DisconnectAll(ctx)
+		mongo.Connection.DisconnectAll(ctx)
 		signal.Stop(c)
 		cancel()
 	}()
@@ -55,7 +56,7 @@ func main() {
 	app := application.GetApplication()
 
 	if connection.URI != "" {
-		application.Connect(connection)
+		application.Connect(mongo.Connection, connection)
 	}
 
 	if err := app.Run(); err != nil {

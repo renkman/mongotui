@@ -18,10 +18,11 @@
 package application
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/gdamore/tcell"
+	"github.com/renkman/mongotui/database"
+	"github.com/renkman/mongotui/models"
 	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/settings"
 	"github.com/renkman/mongotui/ui"
@@ -29,19 +30,21 @@ import (
 )
 
 var (
-	app          *tview.Application
-	pages        *tview.Pages
-	databaseTree *ui.DatabaseTreeWidget
-	resultView   *ui.ResultTreeWidget
-	editor       *tview.InputField
-	commandsView *tview.TextView
-	draw         func()
+	app           *tview.Application
+	pages         *tview.Pages
+	databaseTree  *ui.DatabaseTreeWidget
+	resultView    *ui.ResultTreeWidget
+	editor        *tview.InputField
+	commandsView  *tview.TextView
+	draw          func()
+	getConnection func() database.Connecter
 )
 
 func init() {
 	app = tview.NewApplication()
 	pages = tview.NewPages()
 	draw = func() { app.Draw() }
+	getConnection = func() database.Connecter { return mongo.Connection }
 
 	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree)
 
@@ -63,7 +66,11 @@ func init() {
 	setupCommandsView()
 
 	quitModal := ui.CreateQuitModalWidget(app, pages)
-	connectionForm := ui.CreateConnectionFormWidget(app, pages, Connect, settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
+	connectionForm := ui.CreateConnectionFormWidget(app, pages,
+		func(connection *models.Connection) {
+			Connect(getConnection(), connection)
+		},
+		settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 	dropDatabaseForm := ui.CreateDropDatabaseModalWidget(app, pages, getCurrentDatabase, dropDatabase)
 
 	buildMainScreen()
@@ -85,8 +92,7 @@ func init() {
 		}
 
 		err := databaseTree.HandleDiconnectionEvent(event, func(key string) error {
-			ctx := context.Background()
-			return mongo.Disconnect(ctx, key)
+			return disconnect(getConnection(), key)
 		})
 		if err != nil {
 			message := fmt.Sprintf("Attempt to disconnect failed:\n\n%s", err.Error())

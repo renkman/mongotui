@@ -31,22 +31,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type mongoClient interface {
-	Connect(ctx context.Context, connection *models.Connection) error
-	GetDatabases(ctx context.Context) (string, error)
-}
-
 const defaultHost string = "localhost"
 
+type connection struct {
+	clients map[string]*mongo.Client
+}
+
 var (
-	clients               map[string]*mongo.Client = make(map[string]*mongo.Client)
-	connectionNamePattern *regexp.Regexp           = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
+	Connection            *connection    = &connection{make(map[string]*mongo.Client)}
+	connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
 )
 
 // Connect establishes a connection to the MongoDB instance specified by
 // the passed models.Conenction and stores the resulting client in the internal
 // client map with its URI as key.
-func Connect(ctx context.Context, connection *models.Connection) chan error {
+func (c *connection) Connect(ctx context.Context, connection *models.Connection) chan error {
 	BuildConnectionURI(connection)
 	ch := make(chan error)
 
@@ -63,7 +62,7 @@ func Connect(ctx context.Context, connection *models.Connection) chan error {
 			return
 		}
 
-		clients[connection.URI] = client
+		c.clients[connection.URI] = client
 		ch <- nil
 	}()
 	return ch
@@ -71,11 +70,11 @@ func Connect(ctx context.Context, connection *models.Connection) chan error {
 
 // GetDatabases returns the databases of the MongoDB instance specified by the
 // passed connectionURI as string slice.
-func GetDatabases(ctx context.Context, connectionURI string) ([]string, error) {
+func (c *connection) GetDatabases(ctx context.Context, connectionURI string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	client, err := getClient(connectionURI)
+	client, err := c.getClient(connectionURI)
 	if err != nil {
 		return []string{}, err
 	}
@@ -90,31 +89,31 @@ func GetDatabases(ctx context.Context, connectionURI string) ([]string, error) {
 // Disconnect disconnects from the MongoDB instance specified by
 // the passed connectionURI and removes the related entry from the
 // internal clients map.
-func Disconnect(ctx context.Context, connectionURI string) error {
+func (c *connection) Disconnect(ctx context.Context, connectionURI string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	client, err := getClient(connectionURI)
+	client, err := c.getClient(connectionURI)
 	if err != nil {
 		return err
 	}
 	if err = client.Disconnect(ctx); err != nil {
 		return err
 	}
-	delete(clients, connectionURI)
+	delete(c.clients, connectionURI)
 
 	return nil
 }
 
 // DisconnectAll disconnects from all connected MongoDB instances and
 // cleans up the internal clients map.
-func DisconnectAll(ctx context.Context) error {
+func (c *connection) DisconnectAll(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	for key, client := range clients {
+	for key, client := range c.clients {
 		client.Disconnect(ctx)
-		delete(clients, key)
+		delete(c.clients, key)
 	}
 	return nil
 }
@@ -155,8 +154,8 @@ func BuildConnectionURI(connection *models.Connection) {
 	connection.URI = fmt.Sprintf("mongodb://%s%s%s%s", credentials, host, port, optionParameters)
 }
 
-func getClient(connectionURI string) (*mongo.Client, error) {
-	if client, ok := clients[connectionURI]; ok {
+func (c *connection) getClient(connectionURI string) (*mongo.Client, error) {
+	if client, ok := c.clients[connectionURI]; ok {
 		return client, nil
 	}
 	return nil, fmt.Errorf("Not connected to %s", connectionURI)

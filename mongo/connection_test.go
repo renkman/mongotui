@@ -98,7 +98,7 @@ func TestConnect_WithInvalidHost_RunsIntoTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), expected)
 	start := time.Now()
 	fmt.Printf("Start:\t%v\n", start)
-	ch := Connect(ctx, &models.Connection{Host: "foo"})
+	ch := Connection.Connect(ctx, &models.Connection{Host: "foo"})
 	defer cancel()
 	connect := time.Now()
 	fmt.Printf("Wait:\t%v\n", connect)
@@ -117,7 +117,7 @@ func TestConnect_WithInvalidHostAndCancelCall_CancelsBeforeTimeout(t *testing.T)
 	start := time.Now()
 	timer := time.NewTimer(expected)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	ch := Connect(ctx, &models.Connection{Host: "foo"})
+	ch := Connection.Connect(ctx, &models.Connection{Host: "foo"})
 
 	<-timer.C
 	cancel()
