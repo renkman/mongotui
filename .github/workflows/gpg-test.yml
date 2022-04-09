@@ -24,4 +24,8 @@ jobs:
             
             gpg --batch --gen-key gen-key-script
             
+            echo "List keys"
             gpg --list-keys
+            
+            echo "cat /home/runner/.gnupg/pubring.kbx"
+            cat /home/runner/.gnupg/pubring.kbx
