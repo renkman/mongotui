@@ -20,6 +20,6 @@ jobs:
               Expire-Date: 0
               Passphrase: foobar123
               %commit
-EOF
+            EOF
             cat en-key-script             
 
