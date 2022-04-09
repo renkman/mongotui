@@ -13,20 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    
+    - name: env
+      run: env
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.17
+    #- name: Set up Go
+    #  uses: actions/setup-go@v3
+    #  with:
+    #    go-version: 1.17
 
-    - name: Build
-      run: go build -v ./...
+    #- name: Build
+    #  run: go build -v ./...
 
-    - name: Run mongo docker image for tests
-      run: docker run -d -p 127.0.0.1:27017:27017 mongo
+    #- name: Run mongo docker image for tests
+    #  run: docker run -d -p 127.0.0.1:27017:27017 mongo
       
-    - name: Setup pass for keyring tests
-      run: gpg --list-keys
+    #- name: Setup pass for keyring tests
+    #  run: gpg --list-keys
 
-    - name: Test
-      run: go test -v ./...
+    #- name: Test
+    #  run: go test -v ./...
