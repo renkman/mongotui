@@ -24,6 +24,9 @@ jobs:
 
     - name: Run mongo docker image for tests
       run: docker run -d -p 127.0.0.1:27017:27017 mongo
+      
+    - name: Setup pass for keyring tests
+      run: gpg --list-keys
 
     - name: Test
       run: go test -v ./...
