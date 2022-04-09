@@ -40,6 +40,11 @@ func TestKeyring_Get_Set(t *testing.T) {
 		Data:  []byte("secret mongo connection"),
 		Label: "MongoDB Connection",
 	})
+	
+	keys, _ := ring.Keys()
+
+	assert.Equal(t, 1, len(keys))
+	assert.Equal(t, "Connection", keys[0])	
 
 	item, _ := ring.Get("Connection")
 
