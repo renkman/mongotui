@@ -27,7 +27,7 @@ import (
 )
 
 func TestKeyring_Get_Set(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
+	if os.Getenv("AGENT_ID") != "" || os.Getenv("CI") != "true" {
 		t.Skip("Keyring tests do not run on CI environment")
 	}
 
@@ -47,7 +47,7 @@ func TestKeyring_Get_Set(t *testing.T) {
 }
 
 func TestKeyring_Keys(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
+	if os.Getenv("AGENT_ID") != "" || os.Getenv("CI") != "true" {
 		t.Skip("Keyring tests do not run on CI environment")
 	}
 
