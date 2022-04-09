@@ -31,4 +31,7 @@ jobs:
         run: |
           key=$(gpg --list-keys | awk 'NR==4 { print $1 }')
             echo "Key in var"
-            echo $key       
+            echo $key
+            
+            echo "Init pass"
+            pass init $key
