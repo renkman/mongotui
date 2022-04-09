@@ -24,8 +24,5 @@ jobs:
             
             gpg --batch --gen-key gen-key-script
             
-            echo "List keys"
-            gpg --list-keys
-            
-            echo "cat /home/runner/.gnupg/pubring.kbx"
-            cat /home/runner/.gnupg/pubring.kbx
+            echo "Key"
+            gpg --list-keys | awk 'NR==7 { print $1 }'
