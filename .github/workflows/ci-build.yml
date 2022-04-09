@@ -23,7 +23,7 @@ jobs:
       run: go build -v ./...
 
     - name: Run mongo docker image for tests
-      run: docker run -d --expose 27017 mongo
+      run: docker run -d -p 127.0.0.1:27017:27017 mongo
 
     - name: Test
       run: go test -v ./...
