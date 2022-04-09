@@ -10,19 +10,25 @@ jobs:
     steps:
       - name: Create gpg key
         run: | 
-            cat >gen-key-script <<EOF
-              Key-Type: 1
-              Key-Length: 2048
-              Subkey-Type: 1
-              Subkey-Length: 2048
-              Name-Real: Keyring Test
-              Name-Email: keyring@test.invalid
-              Expire-Date: 0
-              Passphrase: foobar123
-              %commit
-            EOF
+          cat >gen-key-script <<EOF
+            Key-Type: 1
+            Key-Length: 2048
+            Subkey-Type: 1
+            Subkey-Length: 2048
+            Name-Real: Keyring Test
+            Name-Email: keyring@test.invalid
+            Expire-Date: 0
+            Passphrase: foobar123
+            %commit
+          EOF
+
+          gpg --batch --gen-key gen-key-script
+
+          echo "Generated key"
+          gpg --list-keys | awk 'NR==4 { print $1 }'            
             
-            gpg --batch --gen-key gen-key-script
-            
-            echo "Key"
-            gpg --list-keys | awk 'NR==7 { print $1 }'
+      - name:  Init pass
+        run: |
+          key=$(gpg --list-keys | awk 'NR==4 { print $1 }')
+            echo "Key in var"
+            echo $key       
