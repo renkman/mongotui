@@ -1,10 +1,11 @@
-name: Go
+name: CI Build
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:   
 
 jobs:
 
@@ -20,6 +21,9 @@ jobs:
 
     - name: Build
       run: go build -v ./...
+
+    - name: Run mongo docker image for tests
+      run: docker run -d --expose 27017 mongo
 
     - name: Test
       run: go test -v ./...
