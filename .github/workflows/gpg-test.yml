@@ -1,0 +1,26 @@
+name: GPG-experiments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create gpg key
+        run: | 
+            cat >gen-key-script <<EOF
+                Key-Type: 1
+                Key-Length: 2048
+                Subkey-Type: 1
+                Subkey-Length: 2048
+                Name-Real: Keyring Test
+                Name-Email: keyring@test.invalid
+                Expire-Date: 0
+                Passphrase: foobar123
+                %commit
+                EOF
+            cat en-key-script
+              
+
