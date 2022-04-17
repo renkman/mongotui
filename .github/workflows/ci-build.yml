@@ -23,33 +23,7 @@ jobs:
       run: go build -v ./...
 
     - name: Run mongo docker image for tests
-      run: docker run -d -p 127.0.0.1:27017:27017 mongo
-
-    - name: Create gpg key
-      run: | 
-        cat >gen-key-script <<EOF
-          Key-Type: 1
-          Key-Length: 2048
-          Subkey-Type: 1
-          Subkey-Length: 2048
-          Name-Real: Keyring Test
-          Name-Email: keyring@test.invalid
-          Expire-Date: 0
-          Passphrase: foobar123
-          %commit
-        EOF
-        gpg --batch --gen-key gen-key-script
-        echo "Generated key"
-        gpg --list-keys | awk 'NR==4 { print $1 }'            
-
-    - name:  Init pass
-      run: |
-        key=$(gpg --list-keys | awk 'NR==4 { print $1 }')
-          echo "Key in var"
-          echo $key
-
-          echo "Init pass"
-          pass init $key
+      run: docker run -d -p 127.0.0.1:27017:27017 mongo    
 
     - name: Test MongoTUI
       run: go test -v ./...
