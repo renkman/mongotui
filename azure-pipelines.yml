@@ -47,10 +47,6 @@ steps:
 - bash: |
     go test -v ./...
   displayName: Run tests
- - name: Upload coverage to Codecov
-    uses: codecov/codecov-action@v3
-    with:
-      token: ${{ secrets.CODECOV_TOKEN }}
 - task: GitHubRelease@1
   condition: ne(variables.releaseTag, '')
   inputs:
