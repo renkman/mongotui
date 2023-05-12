@@ -1,6 +1,6 @@
 # MongoTUI - MongoDB TUI client
 
-[![Build Status](https://dev.azure.com/janrenken/MongoTui/_apis/build/status/renkman.mongotui?branchName=main)](https://dev.azure.com/janrenken/MongoTui/_build/latest?definitionId=3&branchName=main)
+[![CI Build](https://github.com/renkman/mongotui/actions/workflows/ci-build.yml/badge.svg)](https://github.com/renkman/mongotui/actions/workflows/ci-build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/renkman/mongotui)](https://goreportcard.com/report/github.com/renkman/mongotui)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/lachsfilet/Renkbench/blob/master/LICENSE)
 
