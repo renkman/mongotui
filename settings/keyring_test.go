@@ -26,7 +26,7 @@ import (
 )
 
 func TestKeyring_Get_Set(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
+	if os.Getenv("AGENT_ID") != "" || os.Getenv("CI") == "true" {
 		t.Skip("Keyring tests do not run on CI environment")
 	}
 
@@ -40,13 +40,18 @@ func TestKeyring_Get_Set(t *testing.T) {
 		Label: "MongoDB Connection",
 	})
 
+	keys, _ := ring.Keys()
+
+	assert.Equal(t, 1, len(keys))
+	assert.Equal(t, "Connection", keys[0])
+
 	item, _ := ring.Get("Connection")
 
 	assert.Equal(t, []byte("secret mongo connection"), item.Data)
 }
 
 func TestKeyring_Keys(t *testing.T) {
-	if os.Getenv("AGENT_ID") != "" {
+	if os.Getenv("AGENT_ID") != "" || os.Getenv("CI") == "true" {
 		t.Skip("Keyring tests do not run on CI environment")
 	}
 
