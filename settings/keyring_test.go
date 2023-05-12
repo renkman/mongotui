@@ -18,7 +18,6 @@
 package settings
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -41,9 +40,9 @@ func TestKeyring_Get_Set(t *testing.T) {
 		Label: "MongoDB Connection",
 	})
 
-	item, _ := ring.Get("foo")
+	item, _ := ring.Get("Connection")
 
-	assert.Equal(t, []byte("secret-bar"), item.Data)
+	assert.Equal(t, []byte("secret mongo connection"), item.Data)
 }
 
 func TestKeyring_Keys(t *testing.T) {
@@ -57,5 +56,5 @@ func TestKeyring_Keys(t *testing.T) {
 
 	keys, _ := ring.Keys()
 
-	fmt.Printf("%v", keys)
+	assert.Equal(t, 3, len(keys))
 }
