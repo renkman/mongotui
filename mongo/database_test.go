@@ -41,10 +41,10 @@ func TestExecute_WithValidCommand_ReturnsPrimitiveD(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, connectionURI, connection.URI)
 
-	err = UseDatabase(connectionURI, "admin")
+	err = Database.UseDatabase(connectionURI, "admin")
 	assert.Nil(t, err)
 
-	result, err := Execute(ctx, command)
+	result, err := Database.Execute(ctx, command)
 	assert.Nil(t, err)
 
 	assert.IsType(t, primitive.D{}, result)
@@ -62,11 +62,11 @@ func TestUse_WithNewDatabase_CreatesDatabase(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, connectionURI, connection.URI)
 
-	err = UseDatabase(connectionURI, "foobar")
+	err = Database.UseDatabase(connectionURI, "foobar")
 	assert.Nil(t, err)
 
 	command := []byte(`{"create": "foo"}`)
-	result, err := Execute(ctx, command)
+	result, err := Database.Execute(ctx, command)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 
@@ -81,20 +81,20 @@ func TestExecute_WithInsertAndFind_ReturnsCursor(t *testing.T) {
 	ch := Connection.Connect(ctx, connection)
 	err := <-ch
 	assert.Nil(t, err)
-	UseDatabase(connectionURI, "commodore")
+	Database.UseDatabase(connectionURI, "commodore")
 
 	command := []byte("{\"create\": \"systems\"}")
-	Execute(ctx, command)
+	Database.Execute(ctx, command)
 
 	command = []byte(`{"insert": "systems", "documents": [
 			{"_id":1, "name":"Amiga 500", "release": 1987},
 			{"_id":2, "name":"Amiga 1000", "release": 1985},
 			{"_id":3, "name":"Amiga 4000", "release": 1992}
 		]}`)
-	Execute(ctx, command)
+	Database.Execute(ctx, command)
 
 	command = []byte(`{"find":"systems"}`)
-	result, err := Execute(ctx, command)
+	result, err := Database.Execute(ctx, command)
 	assert.Nil(t, err)
 
 	writeValue(result, 0)

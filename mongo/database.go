@@ -28,36 +28,36 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type db struct {
+type database struct {
 	currentDatabase *mongo.Database
 }
 
-var currentDatabase *mongo.Database
+var Database *database = &database{}
 
 // UseDatabase sets the current database specified by the passed name of the MongoDB instance
 // specified by the passed connectionURI.
 // Since the MongoDB use command is used, the database will be created if it does not
 // exist.
-func UseDatabase(connectionURI string, name string) error {
+func (db *database) UseDatabase(connectionURI string, name string) error {
 	client, err := Connection.getClient(connectionURI)
 	if err != nil {
 		return err
 	}
-	currentDatabase = client.Database(name)
+	db.currentDatabase = client.Database(name)
 	return nil
 }
 
 // GetCollections returns the collections of the current database, which is
 // set by UseDatabase.
-func GetCollections(ctx context.Context) ([]string, error) {
-	if currentDatabase == nil {
+func (db *database) GetCollections(ctx context.Context) ([]string, error) {
+	if db.currentDatabase == nil {
 		return nil, fmt.Errorf("No database selected")
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	collections, err := currentDatabase.ListCollectionNames(ctx, currentDatabase)
+	collections, err := db.currentDatabase.ListCollectionNames(ctx, db.currentDatabase)
 	if err != nil {
 		return []string{}, err
 	}
@@ -66,8 +66,8 @@ func GetCollections(ctx context.Context) ([]string, error) {
 
 // Execute executes the passed command on the current database, which is set by
 // UseDatabase.
-func Execute(ctx context.Context, command []byte) (interface{}, error) {
-	if currentDatabase == nil {
+func (db *database) Execute(ctx context.Context, command []byte) (interface{}, error) {
+	if db.currentDatabase == nil {
 		return nil, fmt.Errorf("No database selected")
 	}
 
@@ -83,7 +83,7 @@ func Execute(ctx context.Context, command []byte) (interface{}, error) {
 	opts := options.RunCmd().SetReadPreference(readpref.Primary())
 
 	var result interface{}
-	err = currentDatabase.RunCommand(ctx, commandBson, opts).Decode(&result)
+	err = db.currentDatabase.RunCommand(ctx, commandBson, opts).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -91,23 +91,23 @@ func Execute(ctx context.Context, command []byte) (interface{}, error) {
 }
 
 // Drop drops the current database.
-func Drop(ctx context.Context) error {
-	if currentDatabase == nil {
+func (db *database) Drop(ctx context.Context) error {
+	if db.currentDatabase == nil {
 		return fmt.Errorf("No database selected")
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	err := currentDatabase.Drop(ctx)
+	err := db.currentDatabase.Drop(ctx)
 	return err
 }
 
 // GetCurrentDatabaseName returns the current database name.
-func GetCurrentDatabaseName() (string, error) {
-	if currentDatabase == nil {
+func (db *database) GetCurrentDatabaseName() (string, error) {
+	if db.currentDatabase == nil {
 		return "", fmt.Errorf("No database selected")
 	}
 
-	return currentDatabase.Name(), nil
+	return db.currentDatabase.Name(), nil
 }

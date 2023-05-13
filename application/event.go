@@ -20,14 +20,14 @@ package application
 import (
 	"context"
 	"fmt"
+
 	"github.com/gdamore/tcell"
-	"github.com/renkman/mongotui/mongo"
 	"github.com/renkman/mongotui/ui"
 )
 
 func handleEditorEvent(key tcell.Key) {
 	ctx := context.Background()
-	result, err := mongo.Execute(ctx, []byte(editor.GetText()))
+	result, err := Database.Execute(ctx, []byte(editor.GetText()))
 	if err != nil {
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
 		return
@@ -45,7 +45,7 @@ func handleUseDatabaseEvent(event *tcell.EventKey) *tcell.EventKey {
 	}
 
 	ui.CreateDatabaseFormWidget(app, pages, func(name string) {
-		err := mongo.UseDatabase(connectionURI, name)
+		err := Database.UseDatabase(connectionURI, name)
 		if err != nil {
 			message := fmt.Sprintf("Use database on %s failed:\n\n%s", connectionURI, err.Error())
 			ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)

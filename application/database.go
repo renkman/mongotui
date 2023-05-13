@@ -30,6 +30,9 @@ import (
 
 // Connect connects to the host with the passed *models.Connection and adds it to the
 // database tree view if it was successful.
+
+var Database database.Database = mongo.Database
+
 func Connect(connecter database.Connecter, connection *models.Connection) {
 	mongo.BuildConnectionURI(connection)
 	if settings.CanStoreConnection && connection.SaveConnection {
@@ -63,8 +66,8 @@ func Connect(connecter database.Connecter, connection *models.Connection) {
 
 func updateDatabaseTree(connectionURI string, name string) []string {
 	ctx := context.Background()
-	mongo.UseDatabase(connectionURI, name)
-	collections, err := mongo.GetCollections(ctx)
+	Database.UseDatabase(connectionURI, name)
+	collections, err := Database.GetCollections(ctx)
 	if err != nil {
 		message := fmt.Sprintf("Getting collections of database %s failed:\n\n%s", name, err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
@@ -74,7 +77,7 @@ func updateDatabaseTree(connectionURI string, name string) []string {
 }
 
 func getCurrentDatabase() string {
-	name, err := mongo.GetCurrentDatabaseName()
+	name, err := Database.GetCurrentDatabaseName()
 	if err == nil {
 		return name
 	}
@@ -85,7 +88,7 @@ func getCurrentDatabase() string {
 
 func dropDatabase() {
 	ctx := context.Background()
-	err := mongo.Drop(ctx)
+	err := Database.Drop(ctx)
 	if err != nil {
 		message := fmt.Sprintf("Deleting current database failed:\n\n%s", err.Error())
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)

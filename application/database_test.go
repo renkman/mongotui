@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/renkman/mongotui/models"
+	"github.com/rivo/tview"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,14 +32,19 @@ type testConnection struct {
 	CurrentDatabase string
 }
 
+type testDatabase struct{}
+
 const (
-	timeout         time.Duration = 1 * time.Second
-	validHost       string        = "mongodb://commodore.com"
-	unreachableHost string        = "mongodb://apple.com"
+	timeout            time.Duration = 1 * time.Second
+	validHost          string        = "mongodb://commodore.com"
+	unreachableHost    string        = "mongodb://apple.com"
+	successfulDatabase string        = "homecomputers"
+	failedDatabase     string        = "iCrap"
 )
 
 var connecter *testConnection = &testConnection{"homecomputers"}
 
+// Test connection mocks
 func (t *testConnection) Connect(ctx context.Context, connection *models.Connection) chan error {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	ch := make(chan error)
@@ -54,19 +60,47 @@ func (t *testConnection) Connect(ctx context.Context, connection *models.Connect
 			return
 		}
 	}()
+
 	return ch
 }
 
 func (t *testConnection) Disconnect(ctx context.Context, connectionURI string) error {
 	return fmt.Errorf("Not implemented yet")
 }
+
 func (t *testConnection) DisconnectAll(ctx context.Context) error {
 	return fmt.Errorf("Not implemented yet")
 }
+
 func (t *testConnection) GetDatabases(ctx context.Context, connectionURI string) ([]string, error) {
 	return []string{t.CurrentDatabase}, nil
 }
 
+// Test database mocks
+func (t *testDatabase) UseDatabase(connectionURI string, name string) error {
+	if connectionURI == validHost && name == successfulDatabase {
+		return nil
+	}
+	return fmt.Errorf("Using database failed")
+}
+
+func (t *testDatabase) GetCollections(ctx context.Context) ([]string, error) {
+	return []string{"Amiga 500", "Amiga 1000"}, nil
+}
+
+func (t *testDatabase) Drop(ctx context.Context) error {
+	return fmt.Errorf("Not implemented yet")
+}
+
+func (t *testDatabase) Execute(ctx context.Context, command []byte) (interface{}, error) {
+	return nil, fmt.Errorf("Not implemented yet")
+}
+
+func (t *testDatabase) GetCurrentDatabaseName() (string, error) {
+	return "", fmt.Errorf("Not implemented yet")
+}
+
+// Tests
 func TestConnect_TriesConnectAndCancelsAfterTimeout(t *testing.T) {
 	draw = func() {}
 
@@ -87,13 +121,26 @@ func TestConnect_ConnectsToDatabaseAndSetsCurrentDatabase(t *testing.T) {
 	connection := &models.Connection{Host: validHost}
 	Connect(connecter, connection)
 
+	databases := getDatabases(t)
+	assert.Len(t, databases, 1)
+	assert.Equal(t, connecter.CurrentDatabase, databases[0].GetText())
+}
+
+func TestUpdateDatabaseTree_updatesDatabase(t *testing.T) {
+	Database = &testDatabase{}
+
+	collections := updateDatabaseTree(validHost, "Amiga")
+	assert.Len(t, collections, 2)
+}
+
+func getDatabases(t *testing.T) []*tview.TreeNode {
+	t.Cleanup(func() {
+		databaseTree.GetRoot().ClearChildren()
+	})
+
 	clients := databaseTree.GetRoot().GetChildren()
 	assert.Len(t, clients, 1)
 	assert.Equal(t, validHost, clients[0].GetText())
 
-	databases := clients[0].GetChildren()
-	assert.Len(t, databases, 1)
-	assert.Equal(t, connecter.CurrentDatabase, databases[0].GetText())
-
-	databaseTree.GetRoot().ClearChildren()
+	return clients[0].GetChildren()
 }
