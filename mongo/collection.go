@@ -25,8 +25,8 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 		return nil, fmt.Errorf("No collection selected")
 	}
 
-	if filter == nil {
-		return nil, fmt.Errorf("Argument filter must not be nil")
+	if filter == nil || len(filter) == 0 {
+		filter = []byte(`{}`)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)

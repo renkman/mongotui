@@ -44,11 +44,13 @@ func CreateResultTreeWidget(app *tview.Application,
 
 // SetResult sets the result returned by the executed MongoDB command to the
 // tcell.TreeView.
-func (r *ResultTreeWidget) SetResult(result interface{}) {
+func (r *ResultTreeWidget) SetResult(result []map[string]interface{}) {
 	root := tview.NewTreeNode("Result Collection")
 	r.TreeView.SetRoot(root).SetCurrentNode(root)
 
-	addNode(root, result)
+	for _, document := range result {
+		addNode(root, document)
+	}
 }
 
 // SetFocus implements the FocusSetter interface to set the focus to the
@@ -69,35 +71,60 @@ func createResultTree() *tview.TreeView {
 	return tree
 }
 
+func addMapNode(node *tview.TreeNode, document map[string]interface{}) {
+	for key, value := range document {
+		child := tview.NewTreeNode(key)
+		node.AddChild(child)
+		addNode(child, value)
+	}
+}
+
 func addNode(node *tview.TreeNode, value interface{}) {
 	switch value.(type) {
+	case map[string]interface{}:
+		resultMap := value.(map[string]interface{})
+		addMapNode(node, resultMap)
 	case primitive.A:
-		resultMap := value.(primitive.A)
-		for i, v := range resultMap {
+		resultArray := value.(primitive.A)
+		for i, v := range resultArray {
 			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
 			node.AddChild(child)
 			addNode(child, v)
 		}
-	case primitive.M:
-		resultMap := value.(primitive.M)
-		for k, v := range resultMap {
-			child := tview.NewTreeNode(k)
-			node.AddChild(child)
-			addNode(child, v)
-		}
-	case primitive.D:
-		resultMap := value.(primitive.D)
-		for i, v := range resultMap {
-			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
-			node.AddChild(child)
-			addNode(child, v)
-		}
-	case primitive.E:
-		resultElement := value.(primitive.E)
-		child := tview.NewTreeNode(resultElement.Key)
-		node.AddChild(child)
-		addNode(child, resultElement.Value)
 	default:
 		node.AddChild(tview.NewTreeNode(fmt.Sprintf("%v", value)))
 	}
 }
+
+// func addNode(node *tview.TreeNode, value interface{}) {
+// 	switch value.(type) {
+// 	case primitive.A:
+// 		resultMap := value.(primitive.A)
+// 		for i, v := range resultMap {
+// 			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
+// 			node.AddChild(child)
+// 			addNode(child, v)
+// 		}
+// 	case primitive.M:
+// 		resultMap := value.(primitive.M)
+// 		for k, v := range resultMap {
+// 			child := tview.NewTreeNode(k)
+// 			node.AddChild(child)
+// 			addNode(child, v)
+// 		}
+// 	case primitive.D:
+// 		resultMap := value.(primitive.D)
+// 		for i, v := range resultMap {
+// 			child := tview.NewTreeNode(fmt.Sprintf("%v", i))
+// 			node.AddChild(child)
+// 			addNode(child, v)
+// 		}
+// 	case primitive.E:
+// 		resultElement := value.(primitive.E)
+// 		child := tview.NewTreeNode(resultElement.Key)
+// 		node.AddChild(child)
+// 		addNode(child, resultElement.Value)
+// 	default:
+// 		node.AddChild(tview.NewTreeNode(fmt.Sprintf("%v", value)))
+// 	}
+// }

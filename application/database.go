@@ -32,6 +32,7 @@ import (
 // database tree view if it was successful.
 
 var Database database.Database = mongo.Database
+var Collection database.Collection = mongo.Collection
 
 func Connect(connecter database.Connecter, connection *models.Connection) {
 	mongo.BuildConnectionURI(connection)
@@ -100,4 +101,8 @@ func dropDatabase() {
 func disconnect(connecter database.Connecter, key string) error {
 	ctx := context.Background()
 	return connecter.Disconnect(ctx, key)
+}
+
+func setCollection(name string) {
+	Collection.SetCollection(name)
 }

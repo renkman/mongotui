@@ -28,6 +28,7 @@ type DatabaseTreeWidget struct {
 	*tview.TreeView
 	*EventWidget
 	loadCollections func(connectionURI string, database string) []string
+	setCollection   func(name string)
 }
 
 const (
@@ -41,12 +42,13 @@ var parentMapping map[*tview.TreeNode]*tview.TreeNode = make(map[*tview.TreeNode
 // CreateDatabaseTreeWidget creates a new DatabaseTreeWidget.
 func CreateDatabaseTreeWidget(app *tview.Application,
 	pages *tview.Pages,
-	loadCollections func(connectionURI string, database string) []string) *DatabaseTreeWidget {
+	loadCollections func(connectionURI string, database string) []string,
+	setCollection func(name string)) *DatabaseTreeWidget {
 	tree := createDatabaseTree()
 	widget := createEventWidget(tree, "databasetree", tcell.KeyCtrlD, app, pages)
 
-	treeWidget := DatabaseTreeWidget{tree, widget, loadCollections}
-	tree.SetSelectedFunc(treeWidget.addCollections)
+	treeWidget := DatabaseTreeWidget{tree, widget, loadCollections, setCollection}
+	tree.SetSelectedFunc(treeWidget.selectNode)
 
 	return &treeWidget
 }
@@ -185,6 +187,16 @@ func (d *DatabaseTreeWidget) getCollections(connectionURI string, name string) [
 	return d.loadCollections(connectionURI, name)
 }
 
+func (d *DatabaseTreeWidget) selectNode(node *tview.TreeNode) {
+	reference := node.GetReference()
+	switch reference {
+	case nodeLevelDatabase:
+		d.addCollections(node)
+	case nodeLevelCollection:
+		d.selectCollection(node)
+	}
+}
+
 func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 	reference := node.GetReference()
 	if reference == nil || reference.(string) != nodeLevelDatabase {
@@ -197,8 +209,19 @@ func (d *DatabaseTreeWidget) addCollections(node *tview.TreeNode) {
 
 	for _, collection := range collections {
 		node.AddChild(tview.NewTreeNode(collection).
-			SetReference(nodeLevelCollection))
+			SetReference(nodeLevelCollection).
+			SetSelectable(true))
 	}
+}
+
+func (d *DatabaseTreeWidget) selectCollection(node *tview.TreeNode) {
+	reference := node.GetReference()
+	if reference == nil || reference.(string) != nodeLevelCollection {
+		return
+	}
+
+	collection := node.GetText()
+	d.setCollection(collection)
 }
 
 func (d *DatabaseTreeWidget) getCurrentClientNode() *tview.TreeNode {
