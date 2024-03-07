@@ -46,7 +46,7 @@ func init() {
 	draw = func() { app.Draw() }
 	getConnection = func() database.Connecter { return mongo.Connection }
 
-	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree)
+	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree, setCollection)
 
 	resultView = ui.CreateResultTreeWidget(app, pages)
 	resultView.SetBorder(true).SetTitle("Result")
@@ -129,7 +129,7 @@ func buildMainScreen() {
 
 	frame := tview.NewFrame(flex).
 		AddText("MongoTUI - MongoDB crawler", true, tview.AlignLeft, tcell.ColorYellow).
-		AddText("Copyright 2021 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
+		AddText("Copyright 2021-2024 Jan Renken", true, tview.AlignRight, tcell.ColorGreenYellow)
 	pages.AddPage("frame", frame, true, true)
 }
 

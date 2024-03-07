@@ -91,7 +91,8 @@ func TestExecute_WithInsertAndFind_ReturnsCursor(t *testing.T) {
 			{"_id":2, "name":"Amiga 1000", "release": 1985},
 			{"_id":3, "name":"Amiga 4000", "release": 1992}
 		]}`)
-	Database.Execute(ctx, command)
+	_, err = Database.Execute(ctx, command)
+	assert.Nil(t, err)
 
 	command = []byte(`{"find":"systems"}`)
 	result, err := Database.Execute(ctx, command)
