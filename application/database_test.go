@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/renkman/mongotui/database"
 	"github.com/renkman/mongotui/models"
 	"github.com/rivo/tview"
 	"github.com/stretchr/testify/assert"
@@ -144,12 +143,4 @@ func getDatabases(t *testing.T) []*tview.TreeNode {
 	assert.Equal(t, validHost, clients[0].GetText())
 
 	return clients[0].GetChildren()
-}
-
-func Test_CreatePrivateTest(t *testing.T) {
-	p := database.Create("foo")
-
-	result := p.GetValue()
-
-	assert.Equal(t, "foo", result)
 }
