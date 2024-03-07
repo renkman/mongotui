@@ -38,6 +38,7 @@ type connection struct {
 }
 
 var (
+	// Holds the current MongoDB connections.
 	Connection            *connection    = &connection{make(map[string]*mongo.Client)}
 	connectionNamePattern *regexp.Regexp = regexp.MustCompile(`mongodb(?:\+srv)*://(?:([^:]+):(?:[^@]+@)){0,1}(.*)`)
 )

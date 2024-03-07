@@ -23,6 +23,7 @@ import (
 	"github.com/renkman/mongotui/models"
 )
 
+// Connecter provides an interface for database connection functions.
 type Connecter interface {
 	Connect(ctx context.Context, connection *models.Connection) chan error
 	Disconnect(ctx context.Context, connectionURI string) error
