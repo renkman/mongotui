@@ -28,7 +28,8 @@ import (
 func handleEditorEvent(key tcell.Key) {
 	ctx := context.Background()
 	// result, err := Database.Execute(ctx, []byte(editor.GetText()))
-	result, err := Collection.Find(ctx, []byte(editor.GetText()), nil, nil)
+	result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
+	//result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), nil, nil)
 	if err != nil {
 		ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
 		return

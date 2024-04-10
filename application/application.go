@@ -34,7 +34,10 @@ var (
 	pages         *tview.Pages
 	databaseTree  *ui.DatabaseTreeWidget
 	resultView    *ui.ResultTreeWidget
-	editor        *tview.InputField
+	filterEditor  *tview.InputField
+	sortEditor    *tview.InputField
+	projectEditor *tview.InputField
+	editorView    *tview.Flex
 	commandsView  *tview.TextView
 	draw          func()
 	getConnection func() database.Connecter
@@ -51,12 +54,29 @@ func init() {
 	resultView = ui.CreateResultTreeWidget(app, pages)
 	resultView.SetBorder(true).SetTitle("Result")
 
-	editor = tview.NewInputField().
-		SetLabel("Command: ").
+	filterEditor = tview.NewInputField().
+		SetLabel("Filter ").
+		SetLabelWidth(10).
 		SetFieldWidth(200).
 		SetDoneFunc(handleEditorEvent)
-	editor.SetBorder(true).
-		SetTitle("Editor")
+
+	sortEditor = tview.NewInputField().
+		SetLabel("Sort ").
+		SetLabelWidth(10).
+		SetFieldWidth(200).
+		SetDoneFunc(handleEditorEvent)
+
+	projectEditor = tview.NewInputField().
+		SetLabel("Project ").
+		SetLabelWidth(10).
+		SetFieldWidth(200).
+		SetDoneFunc(handleEditorEvent)
+
+	editorView = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(filterEditor, 1, 1, false).
+		AddItem(sortEditor, 1, 1, false).
+		AddItem(projectEditor, 1, 1, false)
+	editorView.SetBorder(true).SetTitle("Editor")
 
 	commandsView = tview.NewTextView().
 		SetDynamicColors(true).
@@ -82,8 +102,18 @@ func init() {
 		resultView.HandleEvent(event)
 		dropDatabaseForm.HandleEvent(event)
 
-		if event.Key() == tcell.KeyCtrlE {
-			app.SetFocus(editor)
+		if event.Key() == tcell.KeyCtrlF {
+			app.SetFocus(filterEditor)
+			return event
+		}
+
+		if event.Key() == tcell.KeyCtrlS {
+			app.SetFocus(sortEditor)
+			return event
+		}
+
+		if event.Key() == tcell.KeyCtrlP {
+			app.SetFocus(projectEditor)
 			return event
 		}
 
@@ -121,9 +151,9 @@ func buildMainScreen() {
 		AddItem(tview.NewFlex().
 			AddItem(databaseTree, 40, 0, false).
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-				AddItem(editor, 3, 1, false).
+				AddItem(editorView, 5, 1, false).
 				AddItem(resultView, 0, 1, false).
-				AddItem(tview.NewBox().SetBorder(true).SetTitle("Statistics"), 10, 1, false),
+				AddItem(tview.NewBox().SetBorder(true).SetTitle("Statistics"), 3, 1, false),
 				0, 1, false),
 			0, 1, false)
 

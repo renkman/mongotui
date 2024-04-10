@@ -29,6 +29,14 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 		filter = []byte(`{}`)
 	}
 
+	if sort == nil || len(sort) == 0 {
+		sort = []byte(`{}`)
+	}
+
+	if project == nil || len(project) == 0 {
+		project = []byte(`{}`)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 

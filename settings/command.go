@@ -28,7 +28,9 @@ type Command struct {
 var commands []Command = []Command{
 	{tcell.KeyCtrlC, "[white]Ctrl - C[darkcyan]onnect to database"},
 	{tcell.KeyCtrlD, "[white]Ctrl - D[darkcyan]atabase tree"},
-	{tcell.KeyCtrlE, "[white]Ctrl - E[darkcyan]nter command"},
+	{tcell.KeyCtrlF, "[white]Ctrl - F[darkcyan]ilter"},
+	{tcell.KeyCtrlS, "[white]Ctrl - S[darkcyan]ort result"},
+	{tcell.KeyCtrlP, "[white]Ctrl - P [darkcyan]Set projection"},
 	{tcell.KeyCtrlR, "[white]Ctrl - R[darkcyan]esult view"},
 	{tcell.KeyCtrlT, "[white]Ctrl - T[darkcyan]erminate selected connection"},
 	{tcell.KeyCtrlU, "[white]Ctrl - U[darkcyan]se database"},

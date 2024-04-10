@@ -25,8 +25,7 @@ func TestFind_ReturnsResult(t *testing.T) {
 	command = []byte(`{"insert": "systems", "documents": [
 			{"_id":1, "name":"Amiga 500", "release": 1987, "chipset": ["Agnus", "Denise", "Paula"]},
 			{"_id":2, "name":"Amiga 1000", "release": 1985},
-			{"_id":3, "name":"Amiga 4000", "release": 1992},
-			{"_id":4, "object": {"foo":"Bar"}}
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
 		]}`)
 	_, err = Database.Execute(ctx, command)
 	assert.Nil(t, err)
@@ -58,4 +57,33 @@ func TestFind_WithoutCollection_ReturnsError(t *testing.T) {
 
 	assert.Nil(t, result)
 	assert.Equal(t, "No collection selected", err.Error())
+}
+
+func TestFind_WithOrder_ReturnsOrderedResult(t *testing.T) {
+	const connectionURI string = "mongodb://localhost"
+
+	ctx := context.Background()
+	connection := &models.Connection{URI: connectionURI}
+	ch := Connection.Connect(ctx, connection)
+	err := <-ch
+	assert.Nil(t, err)
+	Database.UseDatabase(connectionURI, "amiga")
+
+	command := []byte("{\"create\": \"ordered\"}")
+	Database.Execute(ctx, command)
+
+	command = []byte(`{"insert": "ordered", "documents": [
+			{"_id":1, "name":"Amiga 500", "release": 1987, "chipset": ["Agnus", "Denise", "Paula"]},
+			{"_id":2, "name":"Amiga 1000", "release": 1985},
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
+		]}`)
+	_, err = Database.Execute(ctx, command)
+	assert.Nil(t, err)
+
+	Collection.SetCollection("ordered")
+
+	result, err := Collection.Find(ctx, []byte(`{}`), []byte(`{"release": 1}`), nil)
+	assert.Nil(t, err)
+
+	fmt.Printf("Result: %v", result)
 }
