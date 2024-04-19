@@ -30,17 +30,19 @@ import (
 )
 
 var (
-	app           *tview.Application
-	pages         *tview.Pages
-	databaseTree  *ui.DatabaseTreeWidget
-	resultView    *ui.ResultTreeWidget
-	filterEditor  *tview.InputField
-	sortEditor    *tview.InputField
-	projectEditor *tview.InputField
-	editorView    *tview.Flex
-	commandsView  *tview.TextView
-	draw          func()
-	getConnection func() database.Connecter
+	app            *tview.Application
+	pages          *tview.Pages
+	databaseTree   *ui.DatabaseTreeWidget
+	resultView     *ui.ResultTreeWidget
+	filterEditor   *tview.InputField
+	sortEditor     *tview.InputField
+	projectEditor  *tview.InputField
+	editorView     *tview.Flex
+	commandsView   *tview.TextView
+	statisticsView *tview.TextView
+	draw           func()
+	getConnection  func() database.Connecter
+	getCollection  func() database.Collection
 )
 
 func init() {
@@ -48,6 +50,7 @@ func init() {
 	pages = tview.NewPages()
 	draw = func() { app.Draw() }
 	getConnection = func() database.Connecter { return mongo.Connection }
+	getCollection = func() database.Collection { return mongo.Collection }
 
 	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree, setCollection)
 
@@ -92,6 +95,9 @@ func init() {
 		},
 		settings.CanStoreConnection, settings.GetConnections, settings.GetConnectionURI)
 	dropDatabaseForm := ui.CreateDropDatabaseModalWidget(app, pages, getCurrentDatabase, dropDatabase)
+
+	statisticsView = tview.NewTextView()
+	statisticsView.SetBorder(true).SetTitle("Statistics")
 
 	buildMainScreen()
 
@@ -153,7 +159,7 @@ func buildMainScreen() {
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 				AddItem(editorView, 5, 1, false).
 				AddItem(resultView, 0, 1, false).
-				AddItem(tview.NewBox().SetBorder(true).SetTitle("Statistics"), 3, 1, false),
+				AddItem(statisticsView, 3, 1, false),
 				0, 1, false),
 			0, 1, false)
 

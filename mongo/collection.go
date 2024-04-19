@@ -70,6 +70,43 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 	return result, nil
 }
 
+func (collection *collection) Count(ctx context.Context, filter []byte) (int64, error) {
+	if collection.currentCollection == nil {
+		return 0, fmt.Errorf("No collection selected")
+	}
+
+	if filter == nil || len(filter) == 0 {
+		count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
+		if err != nil {
+			return count, err
+		}
+		return count, nil
+	}
+
+	filterBson, err := unmarshal(filter)
+	if err != nil {
+		return 0, err
+	}
+
+	count, err := collection.currentCollection.CountDocuments(ctx, filterBson)
+	if err != nil {
+		return count, err
+	}
+	return count, nil
+}
+
+func (collection *collection) EstimatedCount(ctx context.Context) (int64, error) {
+	if collection.currentCollection == nil {
+		return 0, fmt.Errorf("No collection selected")
+	}
+
+	count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
+	if err != nil {
+		return count, err
+	}
+	return count, nil
+}
+
 func unmarshal(command []byte) (interface{}, error) {
 	if command == nil {
 		return nil, nil

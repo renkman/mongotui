@@ -20,6 +20,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/renkman/mongotui/database"
 	"github.com/renkman/mongotui/models"
@@ -28,12 +29,11 @@ import (
 	"github.com/renkman/mongotui/ui"
 )
 
-// Connect connects to the host with the passed *models.Connection and adds it to the
-// database tree view if it was successful.
-
 var Database database.Database = mongo.Database
 var Collection database.Collection = mongo.Collection
 
+// Connect connects to the host with the passed *models.Connection and adds it to the
+// database tree view if it was successful.
 func Connect(connecter database.Connecter, connection *models.Connection) {
 	mongo.BuildConnectionURI(connection)
 	if settings.CanStoreConnection && connection.SaveConnection {
@@ -63,6 +63,40 @@ func Connect(connecter database.Connecter, connection *models.Connection) {
 		return
 	}
 	databaseTree.AddDatabases(connection.Host, connection.URI, databases)
+}
+
+func RunQuery(ctx context.Context, collection database.Collection, filter []byte, sort []byte, project []byte) {
+	total, err := collection.EstimatedCount(ctx)
+	if err != nil {
+		showError(fmt.Sprintf("Collection document count failed:\n\n%s", err.Error()))
+		return
+	}
+
+	count, err := collection.Count(ctx, filter)
+	if err != nil {
+		showError(fmt.Sprintf("Result count failed:\n\n%s", err.Error()))
+		return
+	}
+
+	start := time.Now()
+	result, err := collection.Find(ctx, filter, sort, project)
+	stop := time.Now()
+	elapsed := stop.Sub(start)
+	if err != nil {
+		showError(fmt.Sprintf("Query failed:\n\n%s", err.Error()))
+		return
+	}
+
+	plural := "s"
+	if count == 0 {
+		plural = ""
+	}
+
+	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", count, plural, total, elapsed.String())
+	statisticsView.SetText(queryStats)
+
+	resultView.SetResult(result)
+	databaseTree.UpdateCollections()
 }
 
 func updateDatabaseTree(connectionURI string, name string) []string {
@@ -105,4 +139,9 @@ func disconnect(connecter database.Connecter, key string) error {
 
 func setCollection(name string) {
 	Collection.SetCollection(name)
+}
+
+func showError(message string) {
+	ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
+	// draw()
 }

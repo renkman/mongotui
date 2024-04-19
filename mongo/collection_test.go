@@ -87,3 +87,93 @@ func TestFind_WithOrder_ReturnsOrderedResult(t *testing.T) {
 
 	fmt.Printf("Result: %v", result)
 }
+
+func TestCount_WithFilter_ReturnsDocumentCount(t *testing.T) {
+	const connectionURI string = "mongodb://localhost"
+
+	ctx := context.Background()
+	connection := &models.Connection{URI: connectionURI}
+	ch := Connection.Connect(ctx, connection)
+	err := <-ch
+	assert.Nil(t, err)
+	Database.UseDatabase(connectionURI, "amiga")
+
+	command := []byte("{\"create\": \"countfilter\"}")
+	Database.Execute(ctx, command)
+
+	command = []byte(`{"insert": "countfilter", "documents": [
+			{"_id":1, "name":"Amiga 500", "release": 1987, "chipset": ["Agnus", "Denise", "Paula"]},
+			{"_id":2, "name":"Amiga 1000", "release": 1985},
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
+		]}`)
+	_, err = Database.Execute(ctx, command)
+	assert.Nil(t, err)
+
+	Collection.SetCollection("countfilter")
+
+	result, err := Collection.Count(ctx, []byte(`{"release": {"$gt": 1986} }`))
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(2), result)
+}
+
+func TestCount_WithEmptyFilter_ReturnsDocumentCount(t *testing.T) {
+	const connectionURI string = "mongodb://localhost"
+
+	ctx := context.Background()
+	connection := &models.Connection{URI: connectionURI}
+	ch := Connection.Connect(ctx, connection)
+	err := <-ch
+	assert.Nil(t, err)
+	Database.UseDatabase(connectionURI, "amiga")
+
+	command := []byte("{\"create\": \"count\"}")
+	Database.Execute(ctx, command)
+
+	command = []byte(`{"insert": "count", "documents": [
+			{"_id":1, "name":"Amiga 500", "release": 1987, "chipset": ["Agnus", "Denise", "Paula"]},
+			{"_id":2, "name":"Amiga 1000", "release": 1985},
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
+		]}`)
+	_, err = Database.Execute(ctx, command)
+	assert.Nil(t, err)
+
+	Collection.SetCollection("count")
+
+	filter := []byte{}
+	assert.Equal(t, 0, len(filter))
+
+	result, err := Collection.Count(ctx, filter)
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(3), result)
+}
+
+func TestEstimatedCount_ReturnsTotalCount(t *testing.T) {
+	const connectionURI string = "mongodb://localhost"
+
+	ctx := context.Background()
+	connection := &models.Connection{URI: connectionURI}
+	ch := Connection.Connect(ctx, connection)
+	err := <-ch
+	assert.Nil(t, err)
+	Database.UseDatabase(connectionURI, "amiga")
+
+	command := []byte("{\"create\": \"estimated\"}")
+	Database.Execute(ctx, command)
+
+	command = []byte(`{"insert": "estimated", "documents": [
+			{"_id":1, "name":"Amiga 500", "release": 1987, "chipset": ["Agnus", "Denise", "Paula"]},
+			{"_id":2, "name":"Amiga 1000", "release": 1985},
+			{"_id":3, "name":"Amiga 4000", "release": 1992}
+		]}`)
+	_, err = Database.Execute(ctx, command)
+	assert.Nil(t, err)
+
+	Collection.SetCollection("estimated")
+
+	result, err := Collection.EstimatedCount(ctx)
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(3), result)
+}

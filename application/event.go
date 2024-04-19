@@ -27,15 +27,16 @@ import (
 
 func handleEditorEvent(key tcell.Key) {
 	ctx := context.Background()
+
+	RunQuery(ctx, Collection, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
 	// result, err := Database.Execute(ctx, []byte(editor.GetText()))
-	result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
-	//result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), nil, nil)
-	if err != nil {
-		ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
-		return
-	}
-	resultView.SetResult(result)
-	databaseTree.UpdateCollections()
+	// result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
+	// if err != nil {
+	// 	ui.CreateMessageModalWidget(app, pages, ui.TypeError, err.Error())
+	// 	return
+	// }
+	// resultView.SetResult(result)
+	// databaseTree.UpdateCollections()
 }
 
 func handleUseDatabaseEvent(event *tcell.EventKey) *tcell.EventKey {
