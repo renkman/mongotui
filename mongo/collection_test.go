@@ -119,10 +119,11 @@ func TestCount_WithFilter_ReturnsDocumentCount(t *testing.T) {
 
 	Collection.SetCollection("countfilter")
 
-	result, err := Collection.Count(ctx, []byte(`{"release": {"$gt": 1986} }`))
+	chCount := Collection.Count(ctx, []byte(`{"release": {"$gt": 1986} }`))
+	result := <-chCount
 
-	assert.Nil(t, err)
-	assert.Equal(t, int64(2), result)
+	assert.Nil(t, result.Error)
+	assert.Equal(t, int64(2), result.Count)
 }
 
 func TestCount_WithEmptyFilter_ReturnsDocumentCount(t *testing.T) {
@@ -151,10 +152,11 @@ func TestCount_WithEmptyFilter_ReturnsDocumentCount(t *testing.T) {
 	filter := []byte{}
 	assert.Equal(t, 0, len(filter))
 
-	result, err := Collection.Count(ctx, filter)
+	chCount := Collection.Count(ctx, filter)
+	result := <-chCount
 
-	assert.Nil(t, err)
-	assert.Equal(t, int64(3), result)
+	assert.Nil(t, result.Error)
+	assert.Equal(t, int64(3), result.Count)
 }
 
 func TestEstimatedCount_ReturnsTotalCount(t *testing.T) {
@@ -180,8 +182,9 @@ func TestEstimatedCount_ReturnsTotalCount(t *testing.T) {
 
 	Collection.SetCollection("estimated")
 
-	result, err := Collection.EstimatedCount(ctx)
+	chCount := Collection.EstimatedCount(ctx)
+	result := <-chCount
 
-	assert.Nil(t, err)
-	assert.Equal(t, int64(3), result)
+	assert.Nil(t, result.Error)
+	assert.Equal(t, int64(3), result.Count)
 }

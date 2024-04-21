@@ -88,41 +88,69 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 	return ch
 }
 
-func (collection *collection) Count(ctx context.Context, filter []byte) (int64, error) {
-	if collection.currentCollection == nil {
-		return 0, fmt.Errorf("No collection selected")
-	}
+func (collection *collection) Count(ctx context.Context, filter []byte) chan models.CountResult {
+	ch := make(chan models.CountResult)
 
-	if filter == nil || len(filter) == 0 {
-		count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
-		if err != nil {
-			return count, err
+	go func() {
+		if collection.currentCollection == nil {
+			ch <- models.CountResult{0, fmt.Errorf("No collection selected"), time.Since(time.Now())}
+			return
 		}
-		return count, nil
-	}
 
-	filterBson, err := unmarshal(filter)
-	if err != nil {
-		return 0, err
-	}
+		if filter == nil || len(filter) == 0 {
+			start := time.Now()
+			count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
+			stop := time.Now()
+			duration := stop.Sub(start)
 
-	count, err := collection.currentCollection.CountDocuments(ctx, filterBson)
-	if err != nil {
-		return count, err
-	}
-	return count, nil
+			if err != nil {
+				ch <- models.CountResult{0, err, duration}
+				return
+			}
+			ch <- models.CountResult{count, err, duration}
+			return
+		}
+
+		filterBson, err := unmarshal(filter)
+		if err != nil {
+			ch <- models.CountResult{0, err, time.Since(time.Now())}
+		}
+
+		start := time.Now()
+		count, err := collection.currentCollection.CountDocuments(ctx, filterBson)
+		stop := time.Now()
+		duration := stop.Sub(start)
+
+		if err != nil {
+			ch <- models.CountResult{0, err, duration}
+			return
+		}
+		ch <- models.CountResult{count, err, duration}
+	}()
+	return ch
 }
 
-func (collection *collection) EstimatedCount(ctx context.Context) (int64, error) {
-	if collection.currentCollection == nil {
-		return 0, fmt.Errorf("No collection selected")
-	}
+func (collection *collection) EstimatedCount(ctx context.Context) chan models.CountResult {
+	ch := make(chan models.CountResult)
 
-	count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
-	if err != nil {
-		return count, err
-	}
-	return count, nil
+	go func() {
+		if collection.currentCollection == nil {
+			ch <- models.CountResult{0, fmt.Errorf("No collection selected"), time.Since(time.Now())}
+			return
+		}
+
+		start := time.Now()
+		count, err := collection.currentCollection.EstimatedDocumentCount(ctx)
+		stop := time.Now()
+		duration := stop.Sub(start)
+
+		if err != nil {
+			ch <- models.CountResult{0, err, duration}
+			return
+		}
+		ch <- models.CountResult{count, err, duration}
+	}()
+	return ch
 }
 
 func unmarshal(command []byte) (interface{}, error) {

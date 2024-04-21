@@ -65,40 +65,52 @@ func Connect(connecter database.Connecter, connection *models.Connection) {
 	app.SetFocus(databaseTree)
 }
 
+// RunQuery queries the passed filter on the passed collection and displays the result
+// on the result view.
 func RunQuery(ctx context.Context, collection database.Collection, filter []byte, sort []byte, project []byte) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	total, err := collection.EstimatedCount(ctx)
-	if err != nil {
-		showError(fmt.Sprintf("Collection document count failed:\n\n%s", err.Error()))
+	chEstimation := collection.EstimatedCount(ctx)
+
+	info := fmt.Sprintf("Running collection document count estimation...")
+	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
+
+	estimationResult := <-chEstimation
+	if estimationResult.Error != nil {
+		showError(fmt.Sprintf("Collection document count failed:\n\n%s", estimationResult.Error.Error()))
 		return
 	}
 
-	count, err := collection.Count(ctx, filter)
-	if err != nil {
-		showError(fmt.Sprintf("Result count failed:\n\n%s", err.Error()))
+	chCount := collection.Count(ctx, filter)
+
+	info = fmt.Sprintf("Running result document count...")
+	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
+
+	countResult := <-chCount
+	if countResult.Error != nil {
+		showError(fmt.Sprintf("Result document count failed:\n\n%s", countResult.Error.Error()))
 		return
 	}
 
 	ch := collection.Find(ctx, filter, sort, project)
 
-	info := fmt.Sprintf("Running query...")
+	info = fmt.Sprintf("Running query...")
 	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
 
 	result := <-ch
 
 	if result.Error != nil {
-		showError(fmt.Sprintf("Query failed:\n\n%s", err.Error()))
+		showError(fmt.Sprintf("Query failed:\n\n%s", result.Error.Error()))
 		return
 	}
 
 	plural := "s"
-	if count == 0 {
+	if countResult.Count == 0 {
 		plural = ""
 	}
 
-	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", count, plural, total, result.Duration.String())
+	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", countResult.Count, plural, estimationResult.Count, result.Duration.String())
 	statisticsView.SetText(queryStats)
 
 	resultView.SetResult(result.Result)
