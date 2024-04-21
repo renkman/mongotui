@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/renkman/mongotui/models"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,54 +22,70 @@ func (collection *collection) SetCollection(name string) {
 	collection.currentCollection = Database.currentDatabase.Collection(name)
 }
 
-func (collection *collection) Find(ctx context.Context, filter []byte, sort []byte, project []byte) ([]map[string]interface{}, error) {
-	if collection.currentCollection == nil {
-		return nil, fmt.Errorf("No collection selected")
-	}
+func (collection *collection) Find(ctx context.Context, filter []byte, sort []byte, project []byte) chan models.QueryResult {
+	ch := make(chan models.QueryResult)
 
-	if filter == nil || len(filter) == 0 {
-		filter = []byte(`{}`)
-	}
+	go func() {
+		if collection.currentCollection == nil {
+			ch <- models.QueryResult{nil, fmt.Errorf("No collection selected"), time.Since(time.Now())}
+			return
+		}
 
-	if sort == nil || len(sort) == 0 {
-		sort = []byte(`{}`)
-	}
+		if filter == nil || len(filter) == 0 {
+			filter = []byte(`{}`)
+		}
 
-	if project == nil || len(project) == 0 {
-		project = []byte(`{}`)
-	}
+		if sort == nil || len(sort) == 0 {
+			sort = []byte(`{}`)
+		}
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+		if project == nil || len(project) == 0 {
+			project = []byte(`{}`)
+		}
 
-	filterBson, err := unmarshal(filter)
-	if err != nil {
-		return nil, err
-	}
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 
-	sortBson, err := unmarshal(sort)
-	if err != nil {
-		return nil, err
-	}
+		filterBson, err := unmarshal(filter)
+		if err != nil {
+			ch <- models.QueryResult{nil, err, time.Since(time.Now())}
+			return
+		}
 
-	projectBson, err := unmarshal(project)
-	if err != nil {
-		return nil, err
-	}
+		sortBson, err := unmarshal(sort)
+		if err != nil {
+			ch <- models.QueryResult{nil, err, time.Since(time.Now())}
+			return
+		}
 
-	opts := options.Find().SetSort(sortBson).SetProjection(projectBson)
+		projectBson, err := unmarshal(project)
+		if err != nil {
+			ch <- models.QueryResult{nil, err, time.Since(time.Now())}
+			return
+		}
 
-	cursor, err := collection.currentCollection.Find(ctx, filterBson, opts)
-	if err != nil {
-		return nil, err
-	}
+		opts := options.Find().SetSort(sortBson).SetProjection(projectBson)
 
-	var result []map[string]interface{}
-	err = cursor.All(ctx, &result)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+		start := time.Now()
+		cursor, err := collection.currentCollection.Find(ctx, filterBson, opts)
+		if err != nil {
+			ch <- models.QueryResult{nil, err, time.Since(time.Now())}
+			return
+		}
+
+		var result []map[string]interface{}
+
+		err = cursor.All(ctx, &result)
+		stop := time.Now()
+		elapsed := stop.Sub(start)
+		if err != nil {
+			ch <- models.QueryResult{nil, err, elapsed}
+			return
+		}
+
+		ch <- models.QueryResult{result, err, elapsed}
+	}()
+	return ch
 }
 
 func (collection *collection) Count(ctx context.Context, filter []byte) (int64, error) {

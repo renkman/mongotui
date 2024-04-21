@@ -20,7 +20,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/renkman/mongotui/database"
 	"github.com/renkman/mongotui/models"
@@ -63,9 +62,13 @@ func Connect(connecter database.Connecter, connection *models.Connection) {
 		return
 	}
 	databaseTree.AddDatabases(connection.Host, connection.URI, databases)
+	app.SetFocus(databaseTree)
 }
 
 func RunQuery(ctx context.Context, collection database.Collection, filter []byte, sort []byte, project []byte) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	total, err := collection.EstimatedCount(ctx)
 	if err != nil {
 		showError(fmt.Sprintf("Collection document count failed:\n\n%s", err.Error()))
@@ -78,11 +81,14 @@ func RunQuery(ctx context.Context, collection database.Collection, filter []byte
 		return
 	}
 
-	start := time.Now()
-	result, err := collection.Find(ctx, filter, sort, project)
-	stop := time.Now()
-	elapsed := stop.Sub(start)
-	if err != nil {
+	ch := collection.Find(ctx, filter, sort, project)
+
+	info := fmt.Sprintf("Running query...")
+	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
+
+	result := <-ch
+
+	if result.Error != nil {
 		showError(fmt.Sprintf("Query failed:\n\n%s", err.Error()))
 		return
 	}
@@ -92,10 +98,10 @@ func RunQuery(ctx context.Context, collection database.Collection, filter []byte
 		plural = ""
 	}
 
-	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", count, plural, total, elapsed.String())
+	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", count, plural, total, result.Duration.String())
 	statisticsView.SetText(queryStats)
 
-	resultView.SetResult(result)
+	resultView.SetResult(result.Result)
 	databaseTree.UpdateCollections()
 }
 

@@ -35,10 +35,13 @@ func TestFind_ReturnsResult(t *testing.T) {
 	filters := [][]byte{[]byte(`{}`), []byte{}, nil}
 
 	for _, filter := range filters {
-		result, err := Collection.Find(ctx, filter, nil, nil)
-		assert.Nil(t, err)
+		ch := Collection.Find(ctx, filter, nil, nil)
 
-		for _, document := range result {
+		result := <-ch
+
+		assert.Nil(t, result.Error)
+
+		for _, document := range result.Result {
 			for key, value := range document {
 				fmt.Printf("Key: %v\n", key)
 				fmt.Printf("Value type: %T\n", value)
@@ -46,17 +49,19 @@ func TestFind_ReturnsResult(t *testing.T) {
 			}
 		}
 
-		fmt.Printf("Result: %v", result)
+		fmt.Printf("Result: %v", result.Result)
 	}
 }
 
 func TestFind_WithoutCollection_ReturnsError(t *testing.T) {
 	ctx := context.Background()
 	Collection.currentCollection = nil
-	result, err := Collection.Find(ctx, []byte(`{"release":1987}`), nil, nil)
+	ch := Collection.Find(ctx, []byte(`{"release":1987}`), nil, nil)
 
-	assert.Nil(t, result)
-	assert.Equal(t, "No collection selected", err.Error())
+	result := <-ch
+
+	assert.Nil(t, result.Result)
+	assert.Equal(t, "No collection selected", result.Error.Error())
 }
 
 func TestFind_WithOrder_ReturnsOrderedResult(t *testing.T) {
@@ -82,10 +87,13 @@ func TestFind_WithOrder_ReturnsOrderedResult(t *testing.T) {
 
 	Collection.SetCollection("ordered")
 
-	result, err := Collection.Find(ctx, []byte(`{}`), []byte(`{"release": 1}`), nil)
-	assert.Nil(t, err)
+	chResult := Collection.Find(ctx, []byte(`{}`), []byte(`{"release": 1}`), nil)
 
-	fmt.Printf("Result: %v", result)
+	result := <-chResult
+
+	assert.Nil(t, result.Error)
+
+	fmt.Printf("Result: %v", result.Result)
 }
 
 func TestCount_WithFilter_ReturnsDocumentCount(t *testing.T) {
