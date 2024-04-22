@@ -21,8 +21,15 @@ jobs:
 
     - name: Build MongoTUI
       run: |
-       ls -la 
-       go build -v ./cmd/mongotui/
+       pwd
+       ls -la       
+       cd cmd
+       pwd
+       ls -la
+       cd mongotui
+       pwd
+       ls -la
+       go build -v
 
     - name: Run mongo docker image for tests
       run: docker run -d -p 127.0.0.1:27017:27017 mongo    
