@@ -5,8 +5,8 @@
 *.so
 *.dylib
 *.debug
-./cmd/mongotui/mongotui
-./cmd/seed/seed
+cmd/mongotui/mongotui
+cmd/seed/seed
 *.idea
 
 # Test binary, built with `go test -c`
