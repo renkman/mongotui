@@ -8,6 +8,8 @@
 cmd/mongotui/mongotui
 cmd/seed/seed
 *.idea
+/seed
+/mongotui
 
 # Test binary, built with `go test -c`
 *.test
