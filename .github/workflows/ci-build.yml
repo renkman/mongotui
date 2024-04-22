@@ -20,7 +20,9 @@ jobs:
         go-version: 1.17
 
     - name: Build MongoTUI
-      run: go build -v ./cmd/mongotui/
+      run: |
+       ls -la 
+       go build -v ./cmd/mongotui/
 
     - name: Run mongo docker image for tests
       run: docker run -d -p 127.0.0.1:27017:27017 mongo    
