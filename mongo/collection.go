@@ -22,7 +22,7 @@ func (collection *collection) SetCollection(name string) {
 	collection.currentCollection = Database.currentDatabase.Collection(name)
 }
 
-func (collection *collection) Find(ctx context.Context, filter []byte, sort []byte, project []byte) chan models.QueryResult {
+func (collection *collection) Find(ctx context.Context, filter []byte, sort []byte, project []byte, limit int64, skip int64) chan models.QueryResult {
 	ch := make(chan models.QueryResult)
 
 	go func() {
@@ -64,7 +64,10 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 			return
 		}
 
-		opts := options.Find().SetSort(sortBson).SetProjection(projectBson)
+		opts := options.Find().SetSort(sortBson).
+			SetProjection(projectBson).
+			SetLimit(limit).
+			SetSkip(skip)
 
 		start := time.Now()
 		cursor, err := collection.currentCollection.Find(ctx, filterBson, opts)
@@ -75,6 +78,7 @@ func (collection *collection) Find(ctx context.Context, filter []byte, sort []by
 
 		var result []map[string]interface{}
 
+		cursor.RemainingBatchLength()
 		err = cursor.All(ctx, &result)
 		stop := time.Now()
 		elapsed := stop.Sub(start)

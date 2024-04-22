@@ -93,7 +93,7 @@ func RunQuery(ctx context.Context, collection database.Collection, filter []byte
 		return
 	}
 
-	ch := collection.Find(ctx, filter, sort, project)
+	ch := collection.Find(ctx, filter, sort, project, BufferSize, 0)
 
 	info = fmt.Sprintf("Running query...")
 	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)

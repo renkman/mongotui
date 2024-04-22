@@ -35,7 +35,7 @@ func TestFind_ReturnsResult(t *testing.T) {
 	filters := [][]byte{[]byte(`{}`), []byte{}, nil}
 
 	for _, filter := range filters {
-		ch := Collection.Find(ctx, filter, nil, nil)
+		ch := Collection.Find(ctx, filter, nil, nil, 3, 0)
 
 		result := <-ch
 
@@ -56,7 +56,7 @@ func TestFind_ReturnsResult(t *testing.T) {
 func TestFind_WithoutCollection_ReturnsError(t *testing.T) {
 	ctx := context.Background()
 	Collection.currentCollection = nil
-	ch := Collection.Find(ctx, []byte(`{"release":1987}`), nil, nil)
+	ch := Collection.Find(ctx, []byte(`{"release":1987}`), nil, nil, 3, 0)
 
 	result := <-ch
 
@@ -87,7 +87,7 @@ func TestFind_WithOrder_ReturnsOrderedResult(t *testing.T) {
 
 	Collection.SetCollection("ordered")
 
-	chResult := Collection.Find(ctx, []byte(`{}`), []byte(`{"release": 1}`), nil)
+	chResult := Collection.Find(ctx, []byte(`{}`), []byte(`{"release": 1}`), nil, 3, 0)
 
 	result := <-chResult
 
