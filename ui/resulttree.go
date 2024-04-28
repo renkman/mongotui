@@ -29,15 +29,16 @@ import (
 type ResultTreeWidget struct {
 	*tview.TreeView
 	*EventWidget
+	loadNextResults     func()
+	loadPreviousResults func()
 }
 
 // CreateResultTreeWidget creates a new ResultTreeWidget.
-func CreateResultTreeWidget(app *tview.Application,
-	pages *tview.Pages) *ResultTreeWidget {
+func CreateResultTreeWidget(app *tview.Application, pages *tview.Pages, loadNextResults func(), loadPreviousResults func()) *ResultTreeWidget {
 	tree := createResultTree()
 	widget := createEventWidget(tree, "resulttree", tcell.KeyCtrlR, app, pages)
 
-	treeWidget := ResultTreeWidget{tree, widget}
+	treeWidget := ResultTreeWidget{tree, widget, loadNextResults, loadPreviousResults}
 
 	return &treeWidget
 }
@@ -60,7 +61,18 @@ func (r *ResultTreeWidget) SetFocus(app *tview.Application) {
 }
 
 // HandleEvent handles the event key of the ResultTreeWidget.
-func (r *ResultTreeWidget) HandleEvent(event *tcell.EventKey) {
+func (r *ResultTreeWidget) HandleEvent(event *tcell.EventKey, app *tview.Application) {
+	if app.GetFocus() == r && event.Key() == tcell.KeyRune {
+		if event.Rune() == 'n' {
+			r.loadNextResults()
+			return
+		}
+		if event.Rune() == 'p' {
+			r.loadPreviousResults()
+			return
+		}
+	}
+
 	r.handleEvent(r, event, false)
 }
 

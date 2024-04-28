@@ -33,6 +33,7 @@ type WaitModalWidget struct {
 	*tview.Flex
 	*tview.TextView
 	*Widget
+	NextPrimitive tview.Primitive
 }
 
 const (
@@ -47,15 +48,20 @@ var (
 )
 
 // CreateWaitModalWidget creates a new WaitModalWidget.
-func CreateWaitModalWidget(ctx context.Context, app *tview.Application, pages *tview.Pages, message string, cancel func()) *WaitModalWidget {
+func CreateWaitModalWidgetWithFoucs(ctx context.Context, app *tview.Application, pages *tview.Pages, message string, cancel func(), nextPrimitive tview.Primitive) *WaitModalWidget {
 	spinner, modal, cancelButton := createWaitModalWidget(message, cancel)
 	widget := createWidget(modal, waitModal, app, pages)
 
 	pages.AddPage(waitModal, modal, true, true)
 	app.SetFocus(cancelButton)
-	waitModalWidget := WaitModalWidget{modal, spinner, widget}
+	waitModalWidget := WaitModalWidget{modal, spinner, widget, nextPrimitive}
 	go waitModalWidget.rotateSpinner(ctx)
 	return &waitModalWidget
+}
+
+// CreateWaitModalWidget creates a new WaitModalWidget.
+func CreateWaitModalWidget(ctx context.Context, app *tview.Application, pages *tview.Pages, message string, cancel func()) *WaitModalWidget {
+	return CreateWaitModalWidgetWithFoucs(ctx, app, pages, message, cancel, nil)
 }
 
 func createWaitModalWidget(message string, cancel func()) (*tview.TextView, *tview.Flex, *tview.Button) {
@@ -118,6 +124,9 @@ func (w *WaitModalWidget) rotateSpinner(ctx context.Context) {
 			case <-ctx.Done():
 				w.Pages.RemovePage(waitModal)
 				w.App.Draw()
+				if w.NextPrimitive != nil {
+					w.App.SetFocus(w.NextPrimitive)
+				}
 				return
 			default:
 				w.App.Draw()

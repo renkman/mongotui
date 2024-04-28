@@ -18,7 +18,6 @@
 package application
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/gdamore/tcell"
@@ -26,9 +25,7 @@ import (
 )
 
 func handleEditorEvent(key tcell.Key) {
-	ctx := context.Background()
-
-	RunQuery(ctx, Collection, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
+	RunQuery([]byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
 	// result, err := Database.Execute(ctx, []byte(editor.GetText()))
 	// result, err := Collection.Find(ctx, []byte(filterEditor.GetText()), []byte(sortEditor.GetText()), []byte(projectEditor.GetText()))
 	// if err != nil {

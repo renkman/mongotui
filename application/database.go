@@ -28,8 +28,15 @@ import (
 	"github.com/renkman/mongotui/ui"
 )
 
-var Database database.Database = mongo.Database
-var Collection database.Collection = mongo.Collection
+const pageSize int64 = 200
+
+var (
+	Database   database.Database   = mongo.Database
+	Collection database.Collection = mongo.Collection
+
+	currentPage int64 = 0
+	query       Query
+)
 
 // Connect connects to the host with the passed *models.Connection and adds it to the
 // database tree view if it was successful.
@@ -67,54 +74,10 @@ func Connect(connecter database.Connecter, connection *models.Connection) {
 
 // RunQuery queries the passed filter on the passed collection and displays the result
 // on the result view.
-func RunQuery(ctx context.Context, collection database.Collection, filter []byte, sort []byte, project []byte) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	chEstimation := collection.EstimatedCount(ctx)
-
-	info := fmt.Sprintf("Running collection document count estimation...")
-	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
-
-	estimationResult := <-chEstimation
-	if estimationResult.Error != nil {
-		showError(fmt.Sprintf("Collection document count failed:\n\n%s", estimationResult.Error.Error()))
-		return
-	}
-
-	chCount := collection.Count(ctx, filter)
-
-	info = fmt.Sprintf("Running result document count...")
-	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
-
-	countResult := <-chCount
-	if countResult.Error != nil {
-		showError(fmt.Sprintf("Result document count failed:\n\n%s", countResult.Error.Error()))
-		return
-	}
-
-	ch := collection.Find(ctx, filter, sort, project, BufferSize, 0)
-
-	info = fmt.Sprintf("Running query...")
-	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
-
-	result := <-ch
-
-	if result.Error != nil {
-		showError(fmt.Sprintf("Query failed:\n\n%s", result.Error.Error()))
-		return
-	}
-
-	plural := "s"
-	if countResult.Count == 0 {
-		plural = ""
-	}
-
-	queryStats := fmt.Sprintf("Retrieved %d document%s from %d estimated total documents. Elapsed time: %s", countResult.Count, plural, estimationResult.Count, result.Duration.String())
-	statisticsView.SetText(queryStats)
-
-	resultView.SetResult(result.Result)
-	databaseTree.UpdateCollections()
+func RunQuery(filter []byte, sort []byte, project []byte) {
+	currentPage = 0
+	query = Query{filter, sort, project}
+	runQuery()
 }
 
 func updateDatabaseTree(connectionURI string, name string) []string {
@@ -162,4 +125,66 @@ func setCollection(name string) {
 func showError(message string) {
 	ui.CreateMessageModalWidget(app, pages, ui.TypeError, message)
 	// draw()
+}
+
+func runQuery() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	chEstimation := Collection.EstimatedCount(ctx)
+
+	info := fmt.Sprintf("Running collection document count estimation...")
+	ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
+
+	estimationResult := <-chEstimation
+	if estimationResult.Error != nil {
+		showError(fmt.Sprintf("Collection document count failed:\n\n%s", estimationResult.Error.Error()))
+		return
+	}
+
+	// chCount := Collection.Count(ctx, query.Filter)
+
+	// info = fmt.Sprintf("Running result document count...")
+	// ui.CreateWaitModalWidget(ctx, app, pages, info, cancel)
+
+	// countResult := <-chCount
+	// if countResult.Error != nil {
+	// 	showError(fmt.Sprintf("Result document count failed:\n\n%s", countResult.Error.Error()))
+	// 	return
+	// }
+
+	offset := currentPage * pageSize
+	ch := Collection.Find(ctx, query.Filter, query.Sort, query.Project, pageSize, offset)
+
+	info = fmt.Sprintf("Running query...")
+	ui.CreateWaitModalWidgetWithFoucs(ctx, app, pages, info, cancel, resultView)
+
+	result := <-ch
+
+	if result.Error != nil {
+		showError(fmt.Sprintf("Query failed:\n\n%s", result.Error.Error()))
+		return
+	}
+
+	queryStats := fmt.Sprintf("Retrieved %d documents from %d estimated total documents. Elapsed time: %s", len(result.Result), estimationResult.Count, result.Duration.String())
+	statisticsView.SetText(queryStats)
+
+	resultView.SetResult(result.Result)
+	databaseTree.UpdateCollections()
+}
+
+func loadNextResults() {
+	currentPage++
+
+	runQuery()
+}
+
+func loadPreviousResults() {
+	if currentPage == 0 {
+		return
+	}
+
+	currentPage--
+
+	runQuery()
 }

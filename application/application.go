@@ -54,7 +54,7 @@ func init() {
 
 	databaseTree = ui.CreateDatabaseTreeWidget(app, pages, updateDatabaseTree, setCollection)
 
-	resultView = ui.CreateResultTreeWidget(app, pages)
+	resultView = ui.CreateResultTreeWidget(app, pages, loadNextResults, loadPreviousResults)
 	resultView.SetBorder(true).SetTitle("Result")
 
 	filterEditor = tview.NewInputField().
@@ -105,7 +105,7 @@ func init() {
 		quitModal.HandleEvent(event)
 		connectionForm.HandleEvent(event)
 		databaseTree.HandleEvent(event)
-		resultView.HandleEvent(event)
+		resultView.HandleEvent(event, app)
 		dropDatabaseForm.HandleEvent(event)
 
 		if event.Key() == tcell.KeyCtrlF {
